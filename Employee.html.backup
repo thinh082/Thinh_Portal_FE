@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Portal - HR Portal</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <div class="d-flex" id="wrapper">
+        <!-- Sidebar -->
+        <div class="border-end" id="sidebar">
+            <div class="sidebar-header p-3">
+                <h3 class="fs-5 mb-0"><i class="fa-solid fa-layer-group me-2"></i>HR Portal</h3>
+            </div>
+            <div class="list-group list-group-flush">
+                <a href="#" class="list-group-item list-group-item-action list-group-item-light p-3 active"
+                    data-page="profile">
+                    <i class="fa-solid fa-user me-2"></i>My Profile
+                </a>
+                <a href="#" class="list-group-item list-group-item-action list-group-item-light p-3" data-page="salary">
+                    <i class="fa-solid fa-money-bill-wave me-2"></i>My Salary
+                </a>
+                <a href="#" class="list-group-item list-group-item-action list-group-item-light p-3"
+                    data-page="overtime">
+                    <i class="fa-solid fa-clock me-2"></i>Overtime Registration
+                </a>
+                <a href="#" class="list-group-item list-group-item-action list-group-item-light p-3" data-page="tasks">
+                    <i class="fa-solid fa-list-check me-2"></i>My Tasks
+                </a>
+            </div>
+        </div>
+
+        <!-- Page Content -->
+        <div id="page-content-wrapper" class="w-100">
+            <!-- Top Navbar -->
+            <nav class="navbar navbar-expand-lg navbar-light sticky-top px-3">
+                <div class="container-fluid">
+                    <button class="btn btn-outline-secondary" id="sidebarCollapse">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+
+                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                        <ul class="navbar-nav ms-auto mt-2 mt-lg-0">
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle d-flex align-items-center" id="navbarDropdown"
+                                    href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true"
+                                    aria-expanded="false">
+                                    <div class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center me-2"
+                                        style="width: 32px; height: 32px;">
+                                        <i class="fa-solid fa-user"></i>
+                                    </div>
+                                    <span id="userInfo" class="fw-medium">User</span>
+                                </a>
+                                <div class="dropdown-menu dropdown-menu-end shadow border-0"
+                                    aria-labelledby="navbarDropdown">
+                                    <a class="dropdown-item text-danger" href="#" id="logoutBtn">Logout</a>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Profile Section -->
+            <div id="profile-section" class="container-fluid px-4 mt-4">
+                <div class="row">
+                    <!-- Left Column: Avatar & Actions -->
+                    <div class="col-md-4 mb-4">
+                        <div class="card-custom text-center h-100">
+                            <div class="mb-3">
+                                <img id="profileAvatar"
+                                    src="https://ui-avatars.com/api/?name=User&background=0d6efd&color=fff&size=128"
+                                    class="rounded-circle shadow-sm" alt="Profile Avatar" width="128" height="128">
+                            </div>
+                            <h4 id="profileName" class="fw-bold mb-1">User Name</h4>
+                            <p id="profileRole" class="text-muted mb-4">Role</p>
+
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-outline-primary" data-bs-toggle="modal"
+                                    data-bs-target="#changePasswordModal">
+                                    <i class="fa-solid fa-key me-2"></i> Change Password
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: General Information -->
+                    <div class="col-md-8 mb-4">
+                        <div class="card-custom h-100">
+                            <h5 class="card-title mb-4 border-bottom pb-2">General Information</h5>
+                            <form id="profileForm">
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label text-muted small">Staff ID</label>
+                                        <input type="text" class="form-control bg-light" id="profileId" readonly>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label text-muted small">Join Date</label>
+                                        <input type="text" class="form-control bg-light" id="profileJoinDate" readonly>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label text-muted small">Department</label>
+                                        <input type="text" class="form-control bg-light" id="profileDept" readonly>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label text-muted small">Position</label>
+                                        <input type="text" class="form-control bg-light" id="profilePosition" readonly>
+                                    </div>
+                                </div>
+
+                                <h6 class="mt-4 mb-3 text-primary">Contact Details</h6>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Email Address</label>
+                                        <input type="email" class="form-control" id="profileEmail">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Phone Number</label>
+                                        <input type="tel" class="form-control" id="profilePhone">
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Address</label>
+                                    <input type="text" class="form-control" id="profileAddress">
+                                </div>
+                                <div class="mb-4">
+                                    <label class="form-label">Date of Birth</label>
+                                    <input type="date" class="form-control" id="profileDob">
+                                </div>
+
+                                <div class="d-flex justify-content-end">
+                                    <button type="button" id="btnSaveProfile" class="btn btn-primary px-4">
+                                        <i class="fa-solid fa-save me-2"></i> Save Changes
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-header">
+                <h5 class="modal-title">Change Password</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="changePasswordForm">
+                    <div class="mb-3">
+                        <label class="form-label">Current Password</label>
+                        <input type="password" class="form-control" id="currentPassword">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">New Password</label>
+                        <input type="password" class="form-control" id="newPassword">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Confirm Password</label>
+                        <input type="password" class="form-control" id="confirmPassword">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary btn-sm" id="btnSavePassword">Update</button>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Employee Module -->
+    <script type="module" src="js/employee.js"></script>
+</body>
+
+</html>

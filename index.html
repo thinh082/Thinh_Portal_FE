@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - HR Portal</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="css/style.css" rel="stylesheet">
+</head>
+
+<body class="login-page">
+
+    <div class="login-container">
+        <div class="card card-login shadow-lg border-0">
+            <div class="row g-0">
+                <!-- Left branding panel -->
+                <div class="col-md-5 d-none d-md-flex flex-column justify-content-between bg-primary text-white p-4 rounded-start">
+                    <div>
+                        <div class="mb-4">
+                            <i class="fa-solid fa-users-gear fa-3x"></i>
+                        </div>
+                        <h3 class="fw-bold mb-2">HR Portal</h3>
+                        <p class="mb-3 text-white-50">
+                            Nền tảng quản lý nhân sự, chấm công, nghỉ phép và tiền lương cho doanh nghiệp của bạn.
+                        </p>
+                        <ul class="small text-white-50 mb-0">
+                            <li>Quản lý hồ sơ nhân viên tập trung</li>
+                            <li>Theo dõi chấm công & tăng ca thời gian thực</li>
+                            <li>Báo cáo lương & thống kê trực quan</li>
+                        </ul>
+                    </div>
+                    <div class="small text-white-50">
+                        © 2025 HR Portal Enterprise
+                    </div>
+                </div>
+
+                <!-- Right login form -->
+                <div class="col-md-7">
+                    <div class="card-body p-5">
+                        <div class="mb-4">
+                            <h4 class="fw-bold text-dark mb-1">Đăng nhập hệ thống</h4>
+                            <p class="text-muted mb-0 small">Vui lòng dùng tài khoản được cấp để truy cập portal.</p>
+                        </div>
+
+                        <div id="errorAlert" class="alert alert-danger d-none" role="alert"></div>
+
+                        <form id="loginForm" class="mt-3">
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" id="username" placeholder="Username" required>
+                                <label for="username">Username</label>
+                            </div>
+                            <div class="form-floating mb-3">
+                                <input type="password" class="form-control" id="password" placeholder="Password" required>
+                                <label for="password">Password</label>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <div class="form-check small">
+                                    <input class="form-check-input" type="checkbox" value="" id="rememberMe">
+                                    <label class="form-check-label" for="rememberMe">
+                                        Ghi nhớ đăng nhập
+                                    </label>
+                                </div>
+                                <a href="#" class="text-decoration-none text-muted small">Quên mật khẩu?</a>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-lg w-100 mb-3" id="loginBtn">
+                                Sign In
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-4 text-white-50 small">
+            © 2025 HR Portal Enterprise. All rights reserved.
+        </div>
+    </div>
+
+    <script type="module">
+        import AuthService from './js/services/authService.js';
+
+        // Check if already logged in
+        if (AuthService.isAuthenticated()) {
+            window.location.href = 'dashboard.html';
+        }
+
+        const loginForm = document.getElementById('loginForm');
+        const errorAlert = document.getElementById('errorAlert');
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const loginBtn = document.getElementById('loginBtn');
+
+            // Reset error
+            errorAlert.classList.add('d-none');
+            errorAlert.textContent = '';
+
+            // Loading state
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Signing in...';
+
+            try {
+                const response = await AuthService.login(username, password);
+
+                // Redirect based on Role ID
+                // Assuming roleId 3 is Employee/NhanVien
+                if (response.roleId === 3) {
+                    window.location.href = 'Employee.html';
+                } else {
+                    window.location.href = 'dashboard.html';
+                }
+            } catch (error) {
+                console.error(error);
+                errorAlert.textContent = error.message || 'Login failed';
+                errorAlert.classList.remove('d-none');
+
+                // Shake animation for error
+                const card = document.querySelector('.card-login');
+                card.classList.add('shake');
+                setTimeout(() => card.classList.remove('shake'), 500);
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Sign In';
+            }
+        });
+    </script>
+</body>
+
+</html>
