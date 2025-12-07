@@ -8,10 +8,13 @@ import AttendanceService from './services/attendanceService.js';
 import DashboardService from './services/dashboardService.js';
 import OvertimeService from './services/overtimeService.js';
 import ProjectService from './services/projectService.js';
-import { formatMoney, showToast } from './utils.js';
+import { formatMoney, showToast, initDarkMode } from './utils.js';
 
 // --- Global State & Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
+    // 0. Initialize Dark Mode
+    initDarkMode();
+    
     // 1. Check Auth
     if (!AuthService.isAuthenticated()) {
         window.location.href = 'index.html';

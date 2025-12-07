@@ -5,12 +5,15 @@ import TaskService from './services/taskService.js';
 import LeaveService from './services/leaveService.js';
 import AttendanceService from './services/attendanceService.js';
 import OvertimeService from './services/overtimeService.js';
-import { formatMoney, showToast } from './utils.js';
+import { formatMoney, showToast, initDarkMode } from './utils.js';
 
 const TASK_STATUS_OPTIONS = ['Mới giao', 'Đang thực hiện', 'Hoàn thành'];
 
 // --- Global State & Initialization ---
 function initEmployeePortal() {
+    // Initialize Dark Mode
+    initDarkMode();
+    
     if (!AuthService.isAuthenticated()) {
         window.location.href = 'index.html';
         return;
@@ -421,107 +424,472 @@ function downloadBlob(blob, fileName) {
     window.URL.revokeObjectURL(url);
 }
 
-// --- Tasks Logic ---
+// --- Tasks Logic (Kanban Board) ---
 async function loadTasksPage(container) {
-    showLoading(container, 'Loading Tasks...');
+    showLoading(container, 'Đang tải công việc...');
     try {
         const response = await TaskService.getMyTasks();
+        console.log('Tasks API Response:', response);
         container.innerHTML = '';
+        
         if (response && response.statusCode === 200) {
-            renderTasksTable(container, response.data);
+            const tasks = response.data || [];
+            console.log('Tasks data:', tasks);
+            console.log('Tasks count:', tasks.length);
+            
+            if (Array.isArray(tasks) && tasks.length > 0) {
+                renderKanbanBoard(container, tasks);
+            } else {
+                renderKanbanBoard(container, []);
+            }
         } else {
-            container.innerHTML = `<div class="alert alert-danger">Failed to load tasks: ${response?.message || 'Unknown error'}</div>`;
+            container.innerHTML = `<div class="alert alert-danger">Không thể tải công việc: ${response?.message || 'Lỗi không xác định'}</div>`;
         }
     } catch (error) {
-        container.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+        console.error('Load Tasks Error:', error);
+        container.innerHTML = `<div class="alert alert-danger">Lỗi: ${error.message}</div>`;
     }
 }
 
-function renderTasksTable(container, list) {
+function renderKanbanBoard(container, list) {
+    console.log('Rendering Kanban Board with tasks:', list);
+    
     const wrapper = document.createElement('div');
-    wrapper.className = 'card-custom';
+    wrapper.className = 'kanban-container';
+    
+    // Phân loại tasks theo trạng thái
+    const tasksByStatus = {
+        'Mới giao': [],
+        'Đang thực hiện': [],
+        'Hoàn thành': []
+    };
+
+    if (!Array.isArray(list)) {
+        console.warn('List is not an array:', list);
+        list = [];
+    }
+
+    list.forEach(task => {
+        const status = task.trangThai || task.TrangThai || 'Mới giao';
+        console.log('Task:', task, 'Status:', status);
+        
+        if (tasksByStatus[status]) {
+            tasksByStatus[status].push(task);
+        } else {
+            // Nếu trạng thái không khớp, thêm vào "Mới giao"
+            tasksByStatus['Mới giao'].push(task);
+        }
+    });
+    
+    console.log('Tasks by status:', tasksByStatus);
+
+    const columns = [
+        { status: 'Mới giao', title: 'Mới giao', color: '#3b82f6', icon: 'fa-inbox' },
+        { status: 'Đang thực hiện', title: 'Đang thực hiện', color: '#f59e0b', icon: 'fa-spinner' },
+        { status: 'Hoàn thành', title: 'Hoàn thành', color: '#10b981', icon: 'fa-check-circle' }
+    ];
+
     let html = `
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h5 class="card-title mb-0">My Tasks</h5>
+            <h5 class="card-title mb-0">
+                <i class="fa-solid fa-tasks me-2"></i>My Tasks - Kanban Board
+            </h5>
         </div>
-        <div class="table-responsive">
-            <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th>Title</th>
-                        <th>Description</th>
-                        <th>Start Date</th>
-                        <th>Deadline</th>
-                        <th>Status</th>
-                        <th>Assigner</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>`;
+        <div class="kanban-board">
+    `;
 
-    if (list.length === 0) {
-        html += `<tr><td colspan="7" class="text-center">No tasks assigned.</td></tr>`;
-    } else {
-        list.forEach(item => {
-            const selectOptions = TASK_STATUS_OPTIONS.map(status => `
-                <option value="${status}" ${status === item.trangThai ? 'selected' : ''}>${status}</option>
-            `).join('');
-            html += `<tr>
-                <td class="fw-medium">${item.tieuDe}</td>
-                <td class="text-muted-small">${item.moTa || '-'}</td>
-                <td>${item.ngayBatDau || '-'}</td>
-                <td>${item.hanHoanThanh ? item.hanHoanThanh.split('T')[0] : '-'}</td>
-                <td>
-                    <select class="form-select form-select-sm task-status-select" data-id="${item.id}">
-                        ${selectOptions}
-                    </select>
-                </td>
-                <td>${item.nguoiGiao}</td>
-                <td>
-                    <button class="btn btn-primary btn-sm btn-save-task-status" data-id="${item.id}">
-                        Save
-                    </button>
-                </td>
-            </tr>`;
-        });
-    }
-    html += `</tbody></table></div>`;
+    columns.forEach(column => {
+        const tasks = tasksByStatus[column.status] || [];
+        const taskCount = tasks.length;
+        
+        html += `
+            <div class="kanban-column" data-status="${column.status}">
+                <div class="kanban-column-header" style="border-left: 4px solid ${column.color};">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fa-solid ${column.icon} me-2" style="color: ${column.color};"></i>
+                            <span class="fw-bold">${column.title}</span>
+                        </div>
+                        <span class="badge" style="background-color: ${column.color}20; color: ${column.color};">
+                            ${taskCount}
+                        </span>
+                    </div>
+                </div>
+                <div class="kanban-column-body" id="kanban-${column.status.replace(/\s+/g, '-')}">
+        `;
+
+        if (tasks.length === 0) {
+            html += `
+                <div class="kanban-empty">
+                    <i class="fa-solid fa-inbox text-muted mb-2" style="font-size: 2rem;"></i>
+                    <p class="text-muted small mb-0">Chưa có công việc</p>
+                </div>
+            `;
+        } else {
+            tasks.forEach(task => {
+                // Xử lý các trường có thể có tên khác nhau (camelCase vs PascalCase)
+                const taskId = task.id || task.Id;
+                const taskTitle = task.tieuDe || task.TieuDe || 'Không có tiêu đề';
+                const taskDescription = task.moTa || task.MoTa || '';
+                const taskStatus = task.trangThai || task.TrangThai || 'Mới giao';
+                const taskAssignee = task.nguoiGiao || task.NguoiGiao || '';
+                const taskDeadline = task.hanHoanThanh || task.HanHoanThanh || null;
+                const taskProject = task.duAn || task.DuAn || '';
+                const taskStartDate = task.ngayBatDau || task.NgayBatDau || null;
+                
+                // Xử lý deadline
+                let deadline = null;
+                let isOverdue = false;
+                
+                if (taskDeadline) {
+                    try {
+                        // Nếu là string, parse nó
+                        const deadlineDate = typeof taskDeadline === 'string' 
+                            ? new Date(taskDeadline) 
+                            : new Date(taskDeadline);
+                        
+                        if (!isNaN(deadlineDate.getTime())) {
+                            deadline = deadlineDate.toLocaleDateString('vi-VN');
+                            isOverdue = deadlineDate < new Date() && taskStatus !== 'Hoàn thành';
+                        }
+                    } catch (e) {
+                        console.warn('Error parsing deadline:', e);
+                    }
+                }
+                
+                // Xác định xem card có thể click không (chỉ "Mới giao" và "Đang thực hiện")
+                const isClickable = taskStatus === 'Mới giao' || taskStatus === 'Đang thực hiện';
+                const clickableClass = isClickable ? 'kanban-card-clickable' : '';
+                const cursorStyle = isClickable ? 'cursor: pointer;' : '';
+                
+                html += `
+                    <div class="kanban-card ${clickableClass}" 
+                         draggable="true" 
+                         data-id="${taskId}" 
+                         data-status="${taskStatus}"
+                         style="${cursorStyle}">
+                        <div class="kanban-card-header">
+                            <h6 class="kanban-card-title">${taskTitle}</h6>
+                        </div>
+                        <div class="kanban-card-body">
+                            ${taskDescription ? `<p class="kanban-card-description">${taskDescription}</p>` : ''}
+                            <div class="kanban-card-meta">
+                                ${taskAssignee ? `
+                                    <div class="kanban-meta-item">
+                                        <i class="fa-solid fa-user-tie text-muted"></i>
+                                        <span class="small text-muted">${taskAssignee}</span>
+                                    </div>
+                                ` : ''}
+                                ${deadline ? `
+                                    <div class="kanban-meta-item ${isOverdue ? 'text-danger' : ''}">
+                                        <i class="fa-solid fa-calendar-days ${isOverdue ? 'text-danger' : 'text-muted'}"></i>
+                                        <span class="small ${isOverdue ? 'text-danger fw-bold' : 'text-muted'}">
+                                            ${isOverdue ? '⚠ ' : ''}${deadline}
+                                        </span>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        html += `
+                </div>
+            </div>
+        `;
+    });
+
+    html += `</div>`;
     wrapper.innerHTML = html;
+    
+    console.log('Kanban HTML generated, appending to container');
+    console.log('Container element:', container);
+    
+    // Clear container first
+    container.innerHTML = '';
     container.appendChild(wrapper);
+    console.log('Kanban board appended successfully');
 
-    wrapper.querySelectorAll('.btn-save-task-status').forEach(btn => {
-        btn.addEventListener('click', () => handleSaveTaskStatus(btn, container));
+    // Setup drag and drop - use wrapper instead of container
+    setupKanbanDragAndDrop(wrapper);
+    
+    // Setup click handlers for task cards (only for "Mới giao" and "Đang thực hiện")
+    setupTaskCardClickHandlers(wrapper);
+}
+
+function setupKanbanDragAndDrop(wrapper) {
+    const cards = wrapper.querySelectorAll('.kanban-card');
+    const columns = wrapper.querySelectorAll('.kanban-column-body');
+
+    console.log('Setting up drag and drop. Cards:', cards.length, 'Columns:', columns.length);
+
+    cards.forEach(card => {
+        card.addEventListener('dragstart', handleDragStart);
+        card.addEventListener('dragend', handleDragEnd);
+    });
+
+    columns.forEach(column => {
+        column.addEventListener('dragover', handleDragOver);
+        column.addEventListener('drop', (e) => handleDrop(e, wrapper));
+        column.addEventListener('dragenter', handleDragEnter);
+        column.addEventListener('dragleave', handleDragLeave);
     });
 }
 
-async function handleSaveTaskStatus(button, container) {
-    const id = button.dataset.id;
-    const row = button.closest('tr');
-    const select = row ? row.querySelector('.task-status-select') : null;
+let draggedElement = null;
 
-    if (!select || !select.value) {
-        showToast('Vui lòng chọn trạng thái hợp lệ', 'warning');
-        return;
+function handleDragStart(e) {
+    draggedElement = this;
+    this.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', this.innerHTML);
+}
+
+function handleDragEnd(e) {
+    this.classList.remove('dragging');
+    const columns = document.querySelectorAll('.kanban-column-body');
+    columns.forEach(col => col.classList.remove('drag-over'));
+}
+
+function handleDragOver(e) {
+    if (e.preventDefault) {
+        e.preventDefault();
+    }
+    e.dataTransfer.dropEffect = 'move';
+    return false;
+}
+
+function handleDragEnter(e) {
+    this.classList.add('drag-over');
+}
+
+function handleDragLeave(e) {
+    this.classList.remove('drag-over');
+}
+
+async function handleDrop(e, wrapper) {
+    if (e.stopPropagation) {
+        e.stopPropagation();
     }
 
-    const originalText = button.innerHTML;
-    button.disabled = true;
-    button.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Saving...';
+    this.classList.remove('drag-over');
 
+    if (draggedElement && draggedElement !== this) {
+        const taskId = parseInt(draggedElement.dataset.id);
+        const newStatus = this.closest('.kanban-column').dataset.status;
+        const oldStatus = draggedElement.dataset.status;
+
+        console.log('Dropping task:', taskId, 'from', oldStatus, 'to', newStatus);
+
+        if (newStatus !== oldStatus) {
+            // Update UI immediately
+            draggedElement.dataset.status = newStatus;
+            this.appendChild(draggedElement);
+
+            // Update status on server
+            try {
+                const response = await TaskService.updateStatus(taskId, newStatus, '');
+                if (response && response.statusCode === 200) {
+                    showToast('Cập nhật trạng thái thành công', 'success');
+                } else {
+                    // Revert on error
+                    showToast('Không thể cập nhật trạng thái', 'danger');
+                    // Reload tasks
+                    const tasksSection = document.getElementById('tasks-section');
+                    if (tasksSection) {
+                        loadTasksPage(tasksSection);
+                    }
+                }
+            } catch (error) {
+                console.error('Update Task Status Error:', error);
+                showToast('Lỗi khi cập nhật trạng thái', 'danger');
+                // Reload tasks
+                const tasksSection = document.getElementById('tasks-section');
+                if (tasksSection) {
+                    loadTasksPage(tasksSection);
+                }
+            }
+        }
+    }
+
+    draggedElement = null;
+    return false;
+}
+
+// --- Task Detail Modal Logic ---
+function setupTaskCardClickHandlers(wrapper) {
+    const clickableCards = wrapper.querySelectorAll('.kanban-card-clickable');
+    console.log('Setting up click handlers for', clickableCards.length, 'clickable cards');
+    
+    clickableCards.forEach(card => {
+        // Remove inline onclick and use event listener instead
+        card.removeAttribute('onclick');
+        card.addEventListener('click', (e) => {
+            // Prevent click when dragging
+            if (!card.classList.contains('dragging')) {
+                const taskId = parseInt(card.dataset.id);
+                openTaskDetailModal(taskId);
+            }
+        });
+    });
+}
+
+// Make function global so it can be called from inline onclick (fallback)
+window.openTaskDetailModal = async function(taskId) {
+    const modal = new bootstrap.Modal(document.getElementById('taskDetailModal'));
+    const modalElement = document.getElementById('taskDetailModal');
+    
+    // Reset form
+    document.getElementById('taskDetailForm').reset();
+    document.getElementById('taskDetailId').value = taskId;
+    
+    // Show loading
+    const btnUpdate = document.getElementById('btnUpdateTaskStatus');
+    const originalBtnText = btnUpdate.innerHTML;
+    btnUpdate.disabled = true;
+    btnUpdate.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Đang tải...';
+    
     try {
-        const response = await TaskService.updateStatus(parseInt(id), select.value, '');
+        // Get task details - we need to get from the list or call API
+        // Since we already have the data, let's get it from the current tasks
+        const tasksSection = document.getElementById('tasks-section');
+        if (!tasksSection) return;
+        
+        // Reload task details from API
+        const response = await TaskService.getMyTasks();
         if (response && response.statusCode === 200) {
-            showToast('Cập nhật trạng thái thành công', 'success');
-            loadTasksPage(container);
+            const tasks = response.data || [];
+            const task = tasks.find(t => (t.id || t.Id) === taskId);
+            
+            if (task) {
+                // Populate form
+                const taskTitle = task.tieuDe || task.TieuDe || '';
+                const taskDescription = task.moTa || task.MoTa || '';
+                const taskStatus = task.trangThai || task.TrangThai || 'Mới giao';
+                const taskAssignee = task.nguoiGiao || task.NguoiGiao || '';
+                const taskDeadline = task.hanHoanThanh || task.HanHoanThanh || null;
+                const taskProject = task.duAn || task.DuAn || '';
+                const taskStartDate = task.ngayBatDau || task.NgayBatDau || null;
+                
+                document.getElementById('taskDetailTitle').value = taskTitle;
+                document.getElementById('taskDetailDescription').value = taskDescription;
+                document.getElementById('taskDetailAssigner').value = taskAssignee;
+                document.getElementById('taskDetailStatus').value = taskStatus;
+                document.getElementById('taskDetailProject').value = taskProject || '-';
+                
+                // Format dates
+                if (taskStartDate) {
+                    try {
+                        const startDate = typeof taskStartDate === 'string' 
+                            ? new Date(taskStartDate) 
+                            : new Date(taskStartDate);
+                        if (!isNaN(startDate.getTime())) {
+                            document.getElementById('taskDetailStartDate').value = startDate.toLocaleDateString('vi-VN');
+                        } else {
+                            document.getElementById('taskDetailStartDate').value = '-';
+                        }
+                    } catch (e) {
+                        document.getElementById('taskDetailStartDate').value = '-';
+                    }
+                } else {
+                    document.getElementById('taskDetailStartDate').value = '-';
+                }
+                
+                if (taskDeadline) {
+                    try {
+                        const deadlineDate = typeof taskDeadline === 'string' 
+                            ? new Date(taskDeadline) 
+                            : new Date(taskDeadline);
+                        if (!isNaN(deadlineDate.getTime())) {
+                            document.getElementById('taskDetailDeadline').value = deadlineDate.toLocaleDateString('vi-VN');
+                        } else {
+                            document.getElementById('taskDetailDeadline').value = '-';
+                        }
+                    } catch (e) {
+                        document.getElementById('taskDetailDeadline').value = '-';
+                    }
+                } else {
+                    document.getElementById('taskDetailDeadline').value = '-';
+                }
+                
+                // Disable status select if task is completed
+                const statusSelect = document.getElementById('taskDetailStatus');
+                if (taskStatus === 'Hoàn thành') {
+                    statusSelect.disabled = true;
+                    btnUpdate.disabled = true;
+                    btnUpdate.innerHTML = '<i class="fa-solid fa-lock me-2"></i>Không thể chỉnh sửa';
+                } else {
+                    statusSelect.disabled = false;
+                    btnUpdate.disabled = false;
+                    btnUpdate.innerHTML = originalBtnText;
+                }
+                
+                modal.show();
+            } else {
+                showToast('Không tìm thấy thông tin công việc', 'warning');
+            }
         } else {
-            showToast(response?.message || 'Không thể cập nhật trạng thái', 'danger');
+            showToast('Không thể tải chi tiết công việc', 'danger');
         }
     } catch (error) {
-        console.error('Update Task Status Error:', error);
+        console.error('Load task detail error:', error);
+        showToast('Lỗi khi tải chi tiết công việc', 'danger');
+    } finally {
+        if (document.getElementById('taskDetailStatus').value !== 'Hoàn thành') {
+            btnUpdate.disabled = false;
+            btnUpdate.innerHTML = originalBtnText;
+        }
+    }
+};
+
+// Setup update button handler
+document.addEventListener('DOMContentLoaded', () => {
+    const btnUpdateTaskStatus = document.getElementById('btnUpdateTaskStatus');
+    if (btnUpdateTaskStatus) {
+        btnUpdateTaskStatus.addEventListener('click', handleUpdateTaskStatus);
+    }
+});
+
+async function handleUpdateTaskStatus() {
+    const taskId = parseInt(document.getElementById('taskDetailId').value);
+    const newStatus = document.getElementById('taskDetailStatus').value;
+    const note = document.getElementById('taskDetailNote').value.trim();
+    
+    if (!taskId || !newStatus) {
+        showToast('Vui lòng điền đầy đủ thông tin', 'warning');
+        return;
+    }
+    
+    const btn = document.getElementById('btnUpdateTaskStatus');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Đang cập nhật...';
+    
+    try {
+        const response = await TaskService.updateStatus(taskId, newStatus, note);
+        if (response && response.statusCode === 200) {
+            showToast('Cập nhật trạng thái thành công', 'success');
+            
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('taskDetailModal'));
+            modal.hide();
+            
+            // Reload tasks
+            const tasksSection = document.getElementById('tasks-section');
+            if (tasksSection) {
+                loadTasksPage(tasksSection);
+            }
+        } else {
+            showToast('Cập nhật thất bại: ' + (response?.message || 'Lỗi không xác định'), 'danger');
+        }
+    } catch (error) {
+        console.error('Update task status error:', error);
         showToast('Lỗi khi cập nhật trạng thái', 'danger');
     } finally {
-        button.disabled = false;
-        button.innerHTML = originalText;
+        btn.disabled = false;
+        btn.innerHTML = originalText;
     }
 }
 

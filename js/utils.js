@@ -30,3 +30,45 @@ export function showToast(message, type = 'danger') {
 export const formatMoney = (amount) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
 };
+
+// --- Dark Mode Functions ---
+export function initDarkMode() {
+    // Load saved theme preference
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    setTheme(savedTheme);
+    
+    // Setup toggle button
+    const toggleBtn = document.getElementById('darkModeToggle');
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', toggleDarkMode);
+        updateToggleIcon(savedTheme);
+    }
+}
+
+export function toggleDarkMode() {
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    setTheme(newTheme);
+    updateToggleIcon(newTheme);
+}
+
+export function setTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+}
+
+function updateToggleIcon(theme) {
+    const toggleBtn = document.getElementById('darkModeToggle');
+    if (toggleBtn) {
+        const sunIcon = toggleBtn.querySelector('.fa-sun');
+        const moonIcon = toggleBtn.querySelector('.fa-moon');
+        
+        if (theme === 'dark') {
+            if (sunIcon) sunIcon.style.display = 'none';
+            if (moonIcon) moonIcon.style.display = 'inline-block';
+        } else {
+            if (sunIcon) sunIcon.style.display = 'inline-block';
+            if (moonIcon) moonIcon.style.display = 'none';
+        }
+    }
+}
