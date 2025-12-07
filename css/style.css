@@ -29,13 +29,13 @@
 [data-theme="dark"] {
     --bg-primary: #0f172a;
     --bg-secondary: #1e293b;
-    --bg-tertiary: #334155;
-    --text-primary: #f1f5f9;
-    --text-secondary: #cbd5e1;
-    --text-muted: #94a3b8;
+    --bg-tertiary: #1e293b;
+    --text-primary: #ffffff;
+    --text-secondary: #e2e8f0;
+    --text-muted: #cbd5e1;
     --border-color: #475569;
     --card-bg: #1e293b;
-    --navbar-bg: rgba(15, 23, 42, 0.8);
+    --navbar-bg: rgba(15, 23, 42, 0.95);
     --light-bg: #0f172a;
 }
 
@@ -130,15 +130,15 @@ body {
 }
 
 .btn-toggle-sidebar {
-    color: #64748b;
-    border: 1px solid #e2e8f0;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
     padding: 0.5rem;
     border-radius: 8px;
     transition: all 0.2s;
 }
 
 .btn-toggle-sidebar:hover {
-    background: #f8fafc;
+    background: var(--bg-secondary);
     color: var(--primary-color);
     border-color: var(--primary-color);
 }
@@ -184,6 +184,42 @@ body {
     background-color: #2563eb;
     transform: translateY(-1px);
     box-shadow: 0 6px 8px -1px rgba(59, 130, 246, 0.4);
+}
+
+/* --- Text Colors --- */
+.text-dark {
+    color: var(--text-primary) !important;
+}
+
+.text-muted {
+    color: var(--text-muted) !important;
+}
+
+.text-white {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .text-white {
+    color: #ffffff !important;
+}
+
+/* --- Small text --- */
+small {
+    color: var(--text-muted);
+}
+
+/* --- Links --- */
+a {
+    color: var(--primary-color);
+    transition: color 0.3s ease;
+}
+
+a:hover {
+    color: #2563eb;
+}
+
+[data-theme="dark"] a:hover {
+    color: #60a5fa;
 }
 
 /* --- Tables --- */
@@ -405,6 +441,146 @@ header .text-muted {
     font-size: 0.85rem;
     color: var(--text-muted);
     transition: color 0.3s ease;
+}
+
+.fw-bold, .fw-medium {
+    color: var(--text-primary);
+    transition: color 0.3s ease;
+}
+
+.fw-bold {
+    font-weight: 700;
+}
+
+.fw-medium {
+    font-weight: 600;
+}
+
+/* --- Input readonly --- */
+input[readonly], textarea[readonly] {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-secondary) !important;
+}
+
+/* --- Badge colors in dark mode --- */
+[data-theme="dark"] .badge {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .badge.bg-secondary {
+    background-color: #475569 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .badge.bg-info {
+    background-color: #0ea5e9 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .badge.bg-success {
+    background-color: #10b981 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .badge.bg-warning {
+    background-color: #f59e0b !important;
+    color: #0f172a !important;
+}
+
+[data-theme="dark"] .badge.bg-danger {
+    background-color: #ef4444 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .badge.bg-primary {
+    background-color: #3b82f6 !important;
+    color: #ffffff !important;
+}
+
+/* --- Ensure text contrast in dark mode --- */
+[data-theme="dark"] h1, 
+[data-theme="dark"] h2, 
+[data-theme="dark"] h3, 
+[data-theme="dark"] h4, 
+[data-theme="dark"] h5, 
+[data-theme="dark"] h6 {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] p {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .card-title,
+[data-theme="dark"] .page-title {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .list-group-item {
+    color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .list-group-item.active {
+    color: #60a5fa !important;
+}
+
+[data-theme="dark"] .list-group-item:hover {
+    color: #ffffff !important;
+}
+
+/* --- Table text in dark mode --- */
+[data-theme="dark"] .table td,
+[data-theme="dark"] .table th {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .table thead th {
+    color: var(--text-primary) !important;
+}
+
+/* --- Input placeholder --- */
+[data-theme="dark"] .form-control::placeholder {
+    color: var(--text-muted);
+    opacity: 0.7;
+}
+
+/* --- Navbar text --- */
+[data-theme="dark"] .navbar {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .nav-link {
+    color: var(--text-primary);
+}
+
+/* --- Breadcrumb --- */
+[data-theme="dark"] .breadcrumb-item {
+    color: var(--text-muted);
+}
+
+[data-theme="dark"] .breadcrumb-item.active {
+    color: var(--text-primary);
+}
+
+/* --- Kanban text --- */
+[data-theme="dark"] .kanban-card-title {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .kanban-card-description {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .kanban-meta-item {
+    color: var(--text-muted);
+}
+
+[data-theme="dark"] .kanban-column-header {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .kanban-column-header .fw-bold {
+    color: #ffffff !important;
 }
 
 .badge {
