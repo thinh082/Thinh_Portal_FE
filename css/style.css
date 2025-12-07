@@ -230,9 +230,25 @@ a:hover {
     transition: background-color 0.3s ease;
 }
 
+[data-theme="dark"] .table-responsive {
+    background: #0f172a !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.table {
+    color: var(--text-primary);
+    transition: color 0.3s ease;
+    background-color: transparent;
+}
+
+[data-theme="dark"] .table {
+    background-color: #0f172a !important;
+    color: #ffffff !important;
+}
+
 .table thead th {
     background: var(--bg-secondary);
-    color: var(--text-muted);
+    color: var(--text-primary);
     font-weight: 600;
     text-transform: uppercase;
     font-size: 0.75rem;
@@ -242,17 +258,43 @@ a:hover {
     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
+[data-theme="dark"] .table thead th {
+    background-color: #1e293b !important;
+    color: #ffffff !important;
+    border-bottom-color: #475569 !important;
+}
+
 .table tbody td {
     padding: 1rem;
-    color: var(--text-secondary);
+    color: var(--text-primary);
     border-bottom: 1px solid var(--border-color);
     vertical-align: middle;
     transition: color 0.3s ease, border-color 0.3s ease;
+    background-color: transparent;
+}
+
+[data-theme="dark"] .table tbody td {
+    background-color: #0f172a !important;
+    color: #ffffff !important;
+    border-bottom-color: #475569 !important;
 }
 
 .table-hover tbody tr:hover {
     background-color: var(--bg-secondary);
     transition: background-color 0.3s ease;
+}
+
+.table-hover tbody tr:hover td {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .table-hover tbody tr:hover {
+    background-color: #1e293b !important;
+}
+
+[data-theme="dark"] .table-hover tbody tr:hover td {
+    background-color: #1e293b !important;
+    color: #ffffff !important;
 }
 
 /* --- Profile Section --- */
@@ -528,14 +570,63 @@ input[readonly], textarea[readonly] {
     color: #ffffff !important;
 }
 
-/* --- Table text in dark mode --- */
+/* --- Table text in dark mode - All white --- */
+[data-theme="dark"] .table {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .table * {
+    color: #ffffff !important;
+}
+
 [data-theme="dark"] .table td,
-[data-theme="dark"] .table th {
-    color: var(--text-secondary) !important;
+[data-theme="dark"] .table tbody td,
+[data-theme="dark"] .table th,
+[data-theme="dark"] .table thead th {
+    color: #ffffff !important;
 }
 
 [data-theme="dark"] .table thead th {
-    color: var(--text-primary) !important;
+    background-color: #1e293b !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .table tbody {
+    background-color: #0f172a !important;
+}
+
+[data-theme="dark"] .table tbody tr {
+    background-color: #0f172a !important;
+}
+
+[data-theme="dark"] .table-hover tbody tr:hover td {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .table .text-muted,
+[data-theme="dark"] .table .text-muted-small,
+[data-theme="dark"] .table .text-success,
+[data-theme="dark"] .table .text-danger,
+[data-theme="dark"] .table .text-primary,
+[data-theme="dark"] .table .text-info,
+[data-theme="dark"] .table .text-warning,
+[data-theme="dark"] .table .text-secondary {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .table tbody tr td,
+[data-theme="dark"] .table tbody tr td *,
+[data-theme="dark"] .table tbody tr td .fw-bold,
+[data-theme="dark"] .table tbody tr td .fw-medium,
+[data-theme="dark"] .table tbody tr td span,
+[data-theme="dark"] .table tbody tr td div,
+[data-theme="dark"] .table tbody tr td p {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .table thead tr th,
+[data-theme="dark"] .table thead tr th * {
+    color: #ffffff !important;
 }
 
 /* --- Input placeholder --- */

@@ -1183,7 +1183,7 @@ function renderSalaryExportControls(container) {
     const card = document.createElement('div');
     card.className = 'card-custom mb-3';
     card.innerHTML = `
-        <div class="row g-2 align-items-end">
+        <div class="row g-2 align-items-end mb-3">
             <div class="col-md-3">
                 <label class="form-label">Tháng</label>
                 <input type="number" min="1" max="12" class="form-control" id="exportMonth" placeholder="1-12">
@@ -1196,6 +1196,29 @@ function renderSalaryExportControls(container) {
                 <button class="btn btn-outline-primary me-2" id="btnExportExcel">
                     <i class="fa-solid fa-file-excel me-1"></i> Export Excel
                 </button>
+            </div>
+        </div>
+        <div class="border-top pt-3">
+            <h6 class="mb-3">Import Excel</h6>
+            <div class="row g-2 align-items-end">
+                <div class="col-md-8">
+                    <label class="form-label">Chọn file Excel</label>
+                    <input type="file" class="form-control" id="importExcelFile" accept=".xlsx,.xls">
+                    <small class="text-muted d-block mt-1">
+                        <strong>Định dạng file:</strong> .xlsx hoặc .xls<br>
+                        <strong>Cấu trúc cột (có thể có hoặc không có cột STT):</strong><br>
+                        Cột 1 (tùy chọn): STT<br>
+                        Cột 1 hoặc 2: <strong>Tên nhân viên</strong> (bắt buộc, phải khớp với tên trong hệ thống)<br>
+                        Cột 2 hoặc 3: <strong>Tháng</strong> (1-12, bắt buộc)<br>
+                        Cột 3 hoặc 4: <strong>Năm</strong> (bắt buộc)<br>
+                        Cột 4-9 hoặc 5-10: Lương cơ bản, Số ngày công, Thưởng, Phụ cấp, Khấu trừ, Tổng lương (tùy chọn)
+                    </small>
+                </div>
+                <div class="col-md-4 text-end">
+                    <button class="btn btn-success" id="btnImportExcel">
+                        <i class="fa-solid fa-file-import me-1"></i> Import Excel
+                    </button>
+                </div>
             </div>
         </div>
     `;
@@ -1218,6 +1241,68 @@ function renderSalaryExportControls(container) {
             } finally {
                 btnExportExcel.disabled = false;
                 btnExportExcel.innerHTML = '<i class="fa-solid fa-file-excel me-1"></i> Export Excel';
+            }
+        });
+    }
+
+    const btnImportExcel = card.querySelector('#btnImportExcel');
+    const importFileInput = card.querySelector('#importExcelFile');
+    if (btnImportExcel && importFileInput) {
+        btnImportExcel.addEventListener('click', async () => {
+            const file = importFileInput.files[0];
+            if (!file) {
+                showToast('Vui lòng chọn file Excel', 'warning');
+                return;
+            }
+
+            btnImportExcel.disabled = true;
+            btnImportExcel.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Đang import...';
+            
+            try {
+                const response = await SalaryService.importExcel(file);
+                
+                if (response.statusCode === 200) {
+                    const { successCount, errorCount, errors } = response.data;
+                    
+                    // Show detailed result
+                    if (errorCount > 0 && errors && errors.length > 0) {
+                        // Show errors in a modal or detailed message
+                        let errorDetails = errors.slice(0, 10).join('\n'); // Show first 10 errors
+                        if (errors.length > 10) {
+                            errorDetails += `\n... và ${errors.length - 10} lỗi khác`;
+                        }
+                        
+                        // Show alert with details
+                        alert(`Import kết quả:\n- Thành công: ${successCount} bản ghi\n- Lỗi: ${errorCount} bản ghi\n\nChi tiết lỗi:\n${errorDetails}`);
+                        
+                        if (successCount > 0) {
+                            showToast(`Import thành công ${successCount} bản ghi. Có ${errorCount} lỗi (xem chi tiết trong alert)`, 'warning');
+                        } else {
+                            showToast(`Import thất bại: ${errorCount} lỗi (xem chi tiết trong alert)`, 'danger');
+                        }
+                    } else if (successCount > 0) {
+                        showToast(`Import thành công ${successCount} bản ghi`, 'success');
+                    } else {
+                        showToast('Không có dữ liệu nào được import. Vui lòng kiểm tra lại file Excel', 'warning');
+                    }
+                    
+                    // Reload salary table
+                    const contentArea = document.getElementById('content-area');
+                    if (contentArea) {
+                        loadSalaryPage(contentArea);
+                    }
+                    
+                    // Clear file input
+                    importFileInput.value = '';
+                } else {
+                    showToast(response.message || 'Import thất bại', 'danger');
+                }
+            } catch (err) {
+                console.error('Import error:', err);
+                showToast(err.message || 'Import thất bại', 'danger');
+            } finally {
+                btnImportExcel.disabled = false;
+                btnImportExcel.innerHTML = '<i class="fa-solid fa-file-import me-1"></i> Import Excel';
             }
         });
     }
