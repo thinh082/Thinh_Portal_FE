@@ -252,6 +252,8 @@ async function loadProfile() {
                 document.getElementById('profilePhone').value = data.soDienThoai || '';
                 document.getElementById('profileAddress').value = data.diaChi || '';
                 document.getElementById('profileDob').value = data.ngaySinh ? data.ngaySinh.split('T')[0] : '';
+                document.getElementById('profileExperience').value = data.soNamKinhNghiem || '';
+                document.getElementById('profileSkills').value = data.moTaKyNang || '';
             }
         }
     } catch (error) {

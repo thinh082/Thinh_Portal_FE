@@ -7,6 +7,7 @@ import TaskService from './services/taskService.js';
 import AttendanceService from './services/attendanceService.js';
 import DashboardService from './services/dashboardService.js';
 import OvertimeService from './services/overtimeService.js';
+import ProjectService from './services/projectService.js';
 import { formatMoney, showToast } from './utils.js';
 
 // --- Global State & Initialization ---
@@ -149,6 +150,10 @@ function loadPage(page) {
             contentArea.innerHTML = breadcrumbHtml;
             loadOvertimeAdminPage(contentArea);
             break;
+        case 'project':
+            contentArea.innerHTML = breadcrumbHtml;
+            loadProjectPage(contentArea);
+            break;
         default:
             contentArea.innerHTML = '<h2>404</h2><p>Page not found.</p>';
     }
@@ -190,6 +195,12 @@ async function loadProfile() {
                 document.getElementById('profilePhone').value = data.soDienThoai || '';
                 document.getElementById('profileAddress').value = data.diaChi || '';
                 document.getElementById('profileDob').value = data.ngaySinh ? data.ngaySinh.split('T')[0] : '';
+                
+                // Thông tin nghề nghiệp
+                const profileExperience = document.getElementById('profileExperience');
+                const profileSkills = document.getElementById('profileSkills');
+                if (profileExperience) profileExperience.value = data.soNamKinhNghiem || '';
+                if (profileSkills) profileSkills.value = data.moTaKyNang || '';
             }
         }
     } catch (error) {
@@ -637,6 +648,8 @@ function renderStaffTable(container, staffList) {
                         <th>Department</th>
                         <th>Email</th>
                         <th>Phone</th>
+                        <th>Kinh nghiệm</th>
+                        <th>Kỹ năng</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -644,6 +657,9 @@ function renderStaffTable(container, staffList) {
     `;
 
     staffList.forEach(staff => {
+        const experience = staff.soNamKinhNghiem ? `${staff.soNamKinhNghiem} năm` : '-';
+        const skills = staff.moTaKyNang ? (staff.moTaKyNang.length > 50 ? staff.moTaKyNang.substring(0, 50) + '...' : staff.moTaKyNang) : '-';
+        
         html += `
             <tr>
                 <td><span class="fw-bold">#${staff.id}</span></td>
@@ -659,6 +675,8 @@ function renderStaffTable(container, staffList) {
                 <td>${staff.tenPhongBan || '-'}</td>
                 <td class="text-muted-small">${staff.email || '-'}</td>
                 <td class="text-muted-small">${staff.soDienThoai || '-'}</td>
+                <td><span class="badge bg-secondary">${experience}</span></td>
+                <td class="text-muted-small" style="max-width: 200px;" title="${staff.moTaKyNang || ''}">${skills}</td>
                 <td>
                     <button class="btn btn-light btn-sm text-primary me-1 btn-edit-staff" data-id="${staff.id}" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button>
                     <button class="btn btn-light btn-sm text-danger btn-delete-staff" data-id="${staff.id}" title="Delete"><i class="fa-solid fa-trash"></i></button>
@@ -1271,6 +1289,93 @@ function renderTaskTable(container, list) {
     }
 }
 
+// --- Assign Task Modal Logic ---
+const assignTaskModal = new bootstrap.Modal(document.getElementById('assignTaskModal'));
+const btnSaveTask = document.getElementById('btnSaveTask');
+if (btnSaveTask) {
+    btnSaveTask.addEventListener('click', handleSaveTask);
+}
+
+async function openAssignTaskModal() {
+    const form = document.getElementById('assignTaskForm');
+    form.reset();
+    document.getElementById('assignTaskModalLabel').textContent = 'Giao việc mới';
+
+    // Load danh sách nhân viên
+    const assigneeSelect = document.getElementById('taskAssignee');
+    assigneeSelect.innerHTML = '<option value="">-- Đang tải... --</option>';
+
+    try {
+        const staffRes = await StaffService.getAll();
+        if (staffRes && staffRes.statusCode === 200 && Array.isArray(staffRes.data)) {
+            assigneeSelect.innerHTML = '<option value="">-- Chọn nhân viên --</option>';
+            staffRes.data.forEach(staff => {
+                const option = document.createElement('option');
+                option.value = staff.id;
+                option.textContent = `${staff.hoTen}${staff.chucVu ? ' - ' + staff.chucVu : ''}`;
+                assigneeSelect.appendChild(option);
+            });
+        } else {
+            assigneeSelect.innerHTML = '<option value="">-- Không có nhân viên --</option>';
+            showToast('Không thể tải danh sách nhân viên', 'warning');
+        }
+    } catch (error) {
+        console.error('Load staff error:', error);
+        assigneeSelect.innerHTML = '<option value="">-- Lỗi tải dữ liệu --</option>';
+        showToast('Lỗi khi tải danh sách nhân viên', 'danger');
+    }
+
+    assignTaskModal.show();
+}
+
+async function handleSaveTask() {
+    const title = document.getElementById('taskTitle').value.trim();
+    const description = document.getElementById('taskDescription').value.trim();
+    const assigneeId = document.getElementById('taskAssignee').value;
+    const deadline = document.getElementById('taskDeadline').value;
+
+    // Validation
+    if (!title) {
+        showToast('Vui lòng nhập tiêu đề công việc', 'warning');
+        return;
+    }
+
+    if (!assigneeId) {
+        showToast('Vui lòng chọn người nhận', 'warning');
+        return;
+    }
+
+    const btn = document.getElementById('btnSaveTask');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Đang giao việc...';
+
+    try {
+        const data = {
+            TieuDe: title,
+            MoTa: description || null,
+            IdNguoiNhan: parseInt(assigneeId),
+            HanHoanThanh: deadline ? deadline : null
+        };
+
+        const response = await TaskService.assignTask(data);
+
+        if (response && response.statusCode === 200) {
+            showToast('Giao việc thành công!', 'success');
+            assignTaskModal.hide();
+            loadPage('tasks'); // Reload task list
+        } else {
+            showToast('Giao việc thất bại: ' + (response?.message || 'Lỗi không xác định'), 'danger');
+        }
+    } catch (error) {
+        console.error('Assign task error:', error);
+        showToast('Lỗi khi giao việc: ' + (error.message || 'Lỗi không xác định'), 'danger');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+}
+
 // --- Overtime Management (Admin) ---
 async function loadOvertimeAdminPage(container) {
     showLoading(container, 'Loading overtime data...');
@@ -1286,6 +1391,115 @@ async function loadOvertimeAdminPage(container) {
         if (container.lastElementChild) container.lastElementChild.remove();
         container.innerHTML += `<div class="alert alert-danger">Error: ${error.message}</div>`;
     }
+}
+
+// --- Project Management ---
+async function loadProjectPage(container) {
+    showLoading(container, 'Đang tải danh sách dự án...');
+    try {
+        const response = await ProjectService.getAll();
+        container.lastElementChild.remove();
+        if (response && response.statusCode === 200) {
+            renderProjectTable(container, response.data);
+        } else {
+            container.innerHTML += `<div class="alert alert-danger">Không thể tải danh sách dự án: ${response?.message || 'Lỗi không xác định'}</div>`;
+        }
+    } catch (error) {
+        if (container.lastElementChild) container.lastElementChild.remove();
+        container.innerHTML += `<div class="alert alert-danger">Lỗi: ${error.message}</div>`;
+    }
+}
+
+function renderProjectTable(container, list) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'card-custom';
+
+    let html = `
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="card-title mb-0">Danh sách dự án</h5>
+            <button class="btn btn-primary btn-sm" id="btnAddProject">
+                <i class="fa-solid fa-plus me-2"></i> Thêm dự án
+            </button>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Tên dự án</th>
+                        <th>Ngày bắt đầu</th>
+                        <th>Ngày kết thúc</th>
+                        <th>Trạng thái</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+
+    if (!Array.isArray(list) || list.length === 0) {
+        html += `<tr><td colspan="6" class="text-center">Chưa có dự án nào.</td></tr>`;
+    } else {
+        list.forEach(item => {
+            let badgeClass = 'bg-secondary';
+            if (item.trangThai === 'Hoàn thành') badgeClass = 'bg-success';
+            if (item.trangThai === 'Đang thực hiện') badgeClass = 'bg-primary';
+            if (item.trangThai === 'Tạm dừng') badgeClass = 'bg-warning text-dark';
+            if (item.trangThai === 'Hủy') badgeClass = 'bg-danger';
+
+            const startDate = item.ngayBatDau ? new Date(item.ngayBatDau).toLocaleDateString('vi-VN') : '-';
+            const endDate = item.ngayKetThuc ? new Date(item.ngayKetThuc).toLocaleDateString('vi-VN') : '-';
+
+            html += `
+                <tr>
+                    <td><span class="fw-bold">#${item.id}</span></td>
+                    <td class="fw-medium">${item.tenDuAn || '-'}</td>
+                    <td>${startDate}</td>
+                    <td>${endDate}</td>
+                    <td><span class="badge ${badgeClass}">${item.trangThai || 'Chưa xác định'}</span></td>
+                    <td>
+                        <button class="btn btn-light btn-sm text-primary me-1 btn-edit-project" 
+                            data-id="${item.id}" 
+                            data-name="${item.tenDuAn || ''}" 
+                            data-start="${item.ngayBatDau || ''}" 
+                            data-end="${item.ngayKetThuc || ''}" 
+                            data-status="${item.trangThai || ''}" 
+                            title="Sửa">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+                        <button class="btn btn-light btn-sm text-danger btn-delete-project" 
+                            data-id="${item.id}" 
+                            title="Xóa">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+
+    html += `</tbody></table></div>`;
+    wrapper.innerHTML = html;
+    container.appendChild(wrapper);
+
+    // Event Listeners
+    document.getElementById('btnAddProject').addEventListener('click', () => openProjectModal());
+
+    document.querySelectorAll('.btn-edit-project').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const btn = e.currentTarget;
+            openProjectModal({
+                id: btn.dataset.id,
+                tenDuAn: btn.dataset.name,
+                ngayBatDau: btn.dataset.start,
+                ngayKetThuc: btn.dataset.end,
+                trangThai: btn.dataset.status
+            });
+        });
+    });
+
+    document.querySelectorAll('.btn-delete-project').forEach(btn => {
+        btn.addEventListener('click', (e) => deleteProject(e.currentTarget.dataset.id));
+    });
 }
 
 function renderOvertimeAdminTable(container, list) {
@@ -1338,6 +1552,103 @@ function renderOvertimeAdminTable(container, list) {
     html += `</tbody></table></div>`;
     wrapper.innerHTML = html;
     container.appendChild(wrapper);
+}
+
+// --- Project CRUD Logic ---
+const projectModal = new bootstrap.Modal(document.getElementById('projectModal'));
+const btnSaveProject = document.getElementById('btnSaveProject');
+if (btnSaveProject) {
+    btnSaveProject.addEventListener('click', handleSaveProject);
+}
+
+function openProjectModal(project = null) {
+    const form = document.getElementById('projectForm');
+    form.reset();
+    document.getElementById('projectId').value = '';
+    document.getElementById('projectModalLabel').textContent = 'Thêm dự án mới';
+
+    if (project) {
+        document.getElementById('projectId').value = project.id;
+        document.getElementById('projectName').value = project.tenDuAn || '';
+        
+        if (project.ngayBatDau) {
+            const startDate = new Date(project.ngayBatDau).toISOString().split('T')[0];
+            document.getElementById('projectStartDate').value = startDate;
+        }
+        
+        if (project.ngayKetThuc) {
+            const endDate = new Date(project.ngayKetThuc).toISOString().split('T')[0];
+            document.getElementById('projectEndDate').value = endDate;
+        }
+        
+        document.getElementById('projectStatus').value = project.trangThai || 'Đang thực hiện';
+        document.getElementById('projectModalLabel').textContent = 'Sửa dự án';
+    }
+
+    projectModal.show();
+}
+
+async function handleSaveProject() {
+    const id = document.getElementById('projectId').value;
+    const startDateValue = document.getElementById('projectStartDate').value;
+    const endDateValue = document.getElementById('projectEndDate').value;
+    
+    const data = {
+        TenDuAn: document.getElementById('projectName').value.trim(),
+        NgayBatDau: startDateValue ? new Date(startDateValue + 'T00:00:00').toISOString() : null,
+        NgayKetThuc: endDateValue ? new Date(endDateValue + 'T00:00:00').toISOString() : null,
+        TrangThai: document.getElementById('projectStatus').value || 'Đang thực hiện'
+    };
+
+    if (!data.TenDuAn) {
+        showToast('Vui lòng nhập tên dự án', 'warning');
+        return;
+    }
+
+    const btn = document.getElementById('btnSaveProject');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang lưu...';
+
+    try {
+        let response;
+        if (id) {
+            data.Id = parseInt(id);
+            response = await ProjectService.update(data);
+        } else {
+            response = await ProjectService.create(data);
+        }
+
+        if (response && response.statusCode === 200) {
+            showToast(id ? 'Cập nhật dự án thành công' : 'Thêm dự án thành công', 'success');
+            projectModal.hide();
+            loadPage('project');
+        } else {
+            showToast('Thất bại: ' + (response?.message || 'Lỗi không xác định'), 'danger');
+        }
+    } catch (error) {
+        console.error(error);
+        showToast('Lỗi khi lưu dự án', 'danger');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Lưu';
+    }
+}
+
+async function deleteProject(id) {
+    if (!confirm('Bạn có chắc chắn muốn xóa dự án này?')) return;
+
+    try {
+        const response = await ProjectService.delete(id);
+        if (response && response.statusCode === 200) {
+            showToast('Xóa dự án thành công', 'success');
+            loadPage('project');
+        } else {
+            showToast('Xóa thất bại: ' + (response?.message || 'Lỗi không xác định'), 'danger');
+        }
+    } catch (error) {
+        console.error(error);
+        showToast('Lỗi khi xóa dự án', 'danger');
+    }
 }
 
 // --- Modal & CRUD Logic (Staff) ---

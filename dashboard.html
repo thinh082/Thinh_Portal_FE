@@ -94,20 +94,7 @@
             </nav>
 
             <!-- Global Header for Admin Dashboard -->
-            <header class="px-4 pt-4 pb-3 border-bottom bg-white">
-                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
-                    <div>
-                        <h1 class="h4 mb-1 fw-bold text-dark">Admin Control Center</h1>
-                        <p class="text-muted small mb-0">
-                            Tổng quan nhân sự, chấm công, nghỉ phép và lương trong một màn hình điều khiển.
-                        </p>
-                    </div>
-                    <div class="d-flex align-items-center gap-2 text-muted small">
-                        <i class="fa-solid fa-shield-halved text-primary"></i>
-                        <span>Quyền truy cập: Administrator / HR</span>
-                    </div>
-                </div>
-            </header>
+           
 
             <!-- Profile Section (Hidden by default) -->
             <div id="profile-section" class="container-fluid px-4 mt-4" style="display: none;">
@@ -176,6 +163,18 @@
                                 <div class="mb-4">
                                     <label class="form-label">Date of Birth</label>
                                     <input type="date" class="form-control" id="profileDob">
+                                </div>
+
+                                <h6 class="mt-4 mb-3 text-primary">Thông tin nghề nghiệp</h6>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Số năm kinh nghiệm</label>
+                                        <input type="number" class="form-control" id="profileExperience" min="0" placeholder="Nhập số năm kinh nghiệm">
+                                    </div>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="form-label">Mô tả kỹ năng</label>
+                                    <textarea class="form-control" id="profileSkills" rows="4" placeholder="Mô tả các kỹ năng của bạn..."></textarea>
                                 </div>
 
                                 <div class="d-flex justify-content-end">
@@ -326,6 +325,92 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                     <button type="button" class="btn btn-primary" id="btnSaveLeave">Submit Request</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assign Task Modal -->
+    <div class="modal fade" id="assignTaskModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="assignTaskModalLabel">Giao việc mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="assignTaskForm">
+                        <div class="mb-3">
+                            <label class="form-label">Tiêu đề công việc <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="taskTitle" required placeholder="Nhập tiêu đề công việc">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Mô tả</label>
+                            <textarea class="form-control" id="taskDescription" rows="4" placeholder="Nhập mô tả chi tiết công việc"></textarea>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Người nhận <span class="text-danger">*</span></label>
+                                <select class="form-select" id="taskAssignee" required>
+                                    <option value="">-- Chọn nhân viên --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Hạn hoàn thành</label>
+                                <input type="date" class="form-control" id="taskDeadline">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn btn-primary" id="btnSaveTask">
+                        <i class="fa-solid fa-paper-plane me-2"></i>Giao việc
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Project Modal -->
+    <div class="modal fade" id="projectModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="projectModalLabel">Thêm dự án mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="projectForm">
+                        <input type="hidden" id="projectId">
+                        <div class="mb-3">
+                            <label class="form-label">Tên dự án <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="projectName" required placeholder="Nhập tên dự án">
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Ngày bắt đầu</label>
+                                <input type="date" class="form-control" id="projectStartDate">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Ngày kết thúc</label>
+                                <input type="date" class="form-control" id="projectEndDate">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Trạng thái</label>
+                            <select class="form-select" id="projectStatus">
+                                <option value="Đang thực hiện">Đang thực hiện</option>
+                                <option value="Hoàn thành">Hoàn thành</option>
+                                <option value="Tạm dừng">Tạm dừng</option>
+                                <option value="Hủy">Hủy</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn btn-primary" id="btnSaveProject">Lưu</button>
                 </div>
             </div>
         </div>
