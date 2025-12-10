@@ -8,6 +8,7 @@ import AttendanceService from './services/attendanceService.js';
 import DashboardService from './services/dashboardService.js';
 import OvertimeService from './services/overtimeService.js';
 import ProjectService from './services/projectService.js';
+import UngVienService from './services/ungVienService.js';
 import { formatMoney, showToast, initDarkMode } from './utils.js';
 
 // --- Global State & Initialization ---
@@ -156,6 +157,10 @@ function loadPage(page) {
         case 'project':
             contentArea.innerHTML = breadcrumbHtml;
             loadProjectPage(contentArea);
+            break;
+        case 'cv':
+            contentArea.innerHTML = breadcrumbHtml;
+            loadCvPage(contentArea);
             break;
         default:
             contentArea.innerHTML = '<h2>404</h2><p>Page not found.</p>';
@@ -1834,4 +1839,202 @@ async function deleteStaff(id) {
         console.error('Delete Staff Error:', error);
         alert(`Error deleting staff: ${error.message}`);
     }
+}
+
+// --- CV Management (Kanban Board) ---
+async function loadCvPage(container) {
+    showLoading(container, 'Đang tải danh sách ứng viên...');
+    try {
+        const response = await UngVienService.getAll();
+        container.lastElementChild.remove();
+        
+        if (response && response.statusCode === 200) {
+            const ungViens = response.data || [];
+            renderCvKanbanBoard(container, ungViens);
+        } else {
+            container.innerHTML += `<div class="alert alert-danger">Không thể tải danh sách ứng viên: ${response?.message || 'Lỗi không xác định'}</div>`;
+        }
+    } catch (error) {
+        if (container.lastElementChild) container.lastElementChild.remove();
+        container.innerHTML += `<div class="alert alert-danger">Lỗi: ${error.message}</div>`;
+    }
+}
+
+function renderCvKanbanBoard(container, list) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'cv-kanban-container';
+    
+    // Phân loại ứng viên theo TrangThaiHienTai
+    const ungViensByStatus = {
+        0: [], // Mới
+        1: [], // Phỏng vấn
+        2: []  // Offer
+    };
+    
+    list.forEach(uv => {
+        const status = uv.trangThaiHienTai ?? 0;
+        if (ungViensByStatus.hasOwnProperty(status)) {
+            ungViensByStatus[status].push(uv);
+        } else {
+            ungViensByStatus[0].push(uv); // Mặc định vào "Mới"
+        }
+    });
+    
+    const columns = [
+        { status: 0, title: 'Mới', color: '#3b82f6', icon: 'fa-inbox' },
+        { status: 1, title: 'Phỏng vấn', color: '#f59e0b', icon: 'fa-comments' },
+        { status: 2, title: 'Offer', color: '#10b981', icon: 'fa-handshake' }
+    ];
+    
+    let html = `
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="card-title mb-0">
+                <i class="fa-solid fa-file-lines me-2"></i>CV Management - Kanban Board
+            </h5>
+        </div>
+        <div class="cv-kanban-board">
+    `;
+    
+    columns.forEach(column => {
+        const ungViens = ungViensByStatus[column.status] || [];
+        const count = ungViens.length;
+        
+        html += `
+            <div class="cv-kanban-column" data-status="${column.status}">
+                <div class="cv-kanban-column-header" style="border-left: 4px solid ${column.color};">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fa-solid ${column.icon} me-2" style="color: ${column.color};"></i>
+                            <span class="fw-bold">${column.title}</span>
+                        </div>
+                        <span class="badge" style="background-color: ${column.color}20; color: ${column.color};">
+                            ${count}
+                        </span>
+                    </div>
+                </div>
+                <div class="cv-kanban-column-body" id="cv-column-${column.status}">
+        `;
+        
+        if (ungViens.length === 0) {
+            html += `
+                <div class="cv-kanban-empty">
+                    <i class="fa-solid fa-inbox text-muted mb-2" style="font-size: 2rem;"></i>
+                    <p class="text-muted small mb-0">Chưa có ứng viên</p>
+                </div>
+            `;
+        } else {
+            ungViens.forEach(uv => {
+                const email = uv.email || '-';
+                const phone = uv.soDienThoai || '-';
+                const viTri = uv.viTriUngTuyen || '-';
+                const ngayNop = uv.ngayNopHoSo ? new Date(uv.ngayNopHoSo).toLocaleDateString('vi-VN') : '-';
+                
+                html += `
+                    <div class="cv-kanban-card" data-id="${uv.id}" data-status="${uv.trangThaiHienTai ?? 0}">
+                        <div class="cv-kanban-card-header">
+                            <h6 class="cv-kanban-card-title">${uv.hoTen || 'Chưa có tên'}</h6>
+                        </div>
+                        <div class="cv-kanban-card-body">
+                            <div class="cv-kanban-card-info">
+                                <div class="cv-info-item">
+                                    <i class="fa-solid fa-envelope text-muted"></i>
+                                    <span class="small text-muted">${email}</span>
+                                </div>
+                                <div class="cv-info-item">
+                                    <i class="fa-solid fa-phone text-muted"></i>
+                                    <span class="small text-muted">${phone}</span>
+                                </div>
+                                <div class="cv-info-item">
+                                    <i class="fa-solid fa-briefcase text-muted"></i>
+                                    <span class="small text-muted">${viTri}</span>
+                                </div>
+                                <div class="cv-info-item">
+                                    <i class="fa-solid fa-calendar text-muted"></i>
+                                    <span class="small text-muted">${ngayNop}</span>
+                                </div>
+                            </div>
+                            ${uv.duongDanCv ? `
+                                <div class="mt-2">
+                                    <a href="${uv.duongDanCv}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                        <i class="fa-solid fa-file-pdf me-1"></i>Xem CV
+                                    </a>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+        
+        html += `
+                </div>
+            </div>
+        `;
+    });
+    
+    html += `</div>`;
+    wrapper.innerHTML = html;
+    container.appendChild(wrapper);
+    
+    // Setup drag and drop với SortableJS
+    setupCvKanbanDragAndDrop();
+}
+
+function setupCvKanbanDragAndDrop() {
+    const columns = [0, 1, 2];
+    
+    columns.forEach(status => {
+        const columnElement = document.getElementById(`cv-column-${status}`);
+        if (!columnElement) return;
+        
+        new Sortable(columnElement, {
+            group: 'cv-kanban',
+            animation: 150,
+            ghostClass: 'cv-kanban-ghost',
+            dragClass: 'cv-kanban-drag',
+            onEnd: async function(evt) {
+                const card = evt.item;
+                const cardId = parseInt(card.dataset.id);
+                const oldStatus = parseInt(card.dataset.status);
+                const newStatus = parseInt(evt.to.closest('.cv-kanban-column').dataset.status);
+                
+                // Nếu trạng thái không thay đổi thì không làm gì
+                if (oldStatus === newStatus) {
+                    return;
+                }
+                
+                // Cập nhật data-status của card
+                card.dataset.status = newStatus;
+                
+                // Gọi API để cập nhật TrangThaiHienTai
+                try {
+                    const response = await UngVienService.update({
+                        Id: cardId,
+                        TrangThaiHienTai: newStatus
+                    });
+                    
+                    if (response && response.statusCode === 200) {
+                        showToast('Cập nhật trạng thái ứng viên thành công', 'success');
+                    } else {
+                        showToast('Cập nhật thất bại: ' + (response?.message || 'Lỗi không xác định'), 'danger');
+                        // Revert lại vị trí cũ nếu lỗi
+                        const oldColumn = document.getElementById(`cv-column-${oldStatus}`);
+                        if (oldColumn) {
+                            oldColumn.appendChild(card);
+                            card.dataset.status = oldStatus;
+                        }
+                    }
+                } catch (error) {
+                    console.error('Update CV status error:', error);
+                    showToast('Lỗi khi cập nhật trạng thái', 'danger');
+                    // Revert lại vị trí cũ nếu lỗi
+                    const oldColumn = document.getElementById(`cv-column-${oldStatus}`);
+                    if (oldColumn) {
+                        oldColumn.appendChild(card);
+                        card.dataset.status = oldStatus;
+                    }
+                }
+            }
+        });
+    });
 }

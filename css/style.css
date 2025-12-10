@@ -846,3 +846,148 @@ input[readonly], textarea[readonly] {
         min-height: 200px;
     }
 }
+
+/* --- CV Kanban Board Styles --- */
+.cv-kanban-container {
+    padding: 0;
+}
+
+.cv-kanban-board {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    padding: 1rem 0;
+}
+
+.cv-kanban-column {
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    min-height: 500px;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border-color);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.cv-kanban-column-header {
+    padding: 1rem 1.25rem;
+    background: var(--card-bg);
+    border-radius: 12px 12px 0 0;
+    border-bottom: 2px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.cv-kanban-column-body {
+    flex: 1;
+    padding: 1rem;
+    overflow-y: auto;
+    min-height: 400px;
+    transition: background-color 0.3s ease;
+}
+
+.cv-kanban-empty {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text-muted);
+    transition: color 0.3s ease;
+}
+
+.cv-kanban-card {
+    background: var(--card-bg);
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--border-color);
+    cursor: grab;
+    transition: all 0.2s ease, background-color 0.3s ease, border-color 0.3s ease;
+    position: relative;
+}
+
+.cv-kanban-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+    border-color: var(--primary-color);
+}
+
+.cv-kanban-card:active {
+    cursor: grabbing;
+}
+
+.cv-kanban-card-header {
+    margin-bottom: 0.75rem;
+}
+
+.cv-kanban-card-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+    line-height: 1.4;
+    transition: color 0.3s ease;
+}
+
+.cv-kanban-card-body {
+    font-size: 0.875rem;
+}
+
+.cv-kanban-card-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.cv-info-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.cv-info-item i {
+    width: 16px;
+    font-size: 0.8rem;
+}
+
+.cv-kanban-ghost {
+    opacity: 0.4;
+}
+
+.cv-kanban-drag {
+    opacity: 0.8;
+    transform: rotate(3deg);
+}
+
+/* Dark mode for CV Kanban */
+[data-theme="dark"] .cv-kanban-card-title {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .cv-info-item {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .cv-kanban-column-header {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .cv-kanban-column-header .fw-bold {
+    color: #ffffff !important;
+}
+
+/* Responsive CV Kanban */
+@media (max-width: 1200px) {
+    .cv-kanban-board {
+        grid-template-columns: 1fr;
+    }
+    
+    .cv-kanban-column {
+        min-height: 300px;
+    }
+    
+    .cv-kanban-column-body {
+        min-height: 200px;
+    }
+}
