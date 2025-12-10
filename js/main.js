@@ -1928,9 +1928,13 @@ function renderCvKanbanBoard(container, list) {
                 const phone = uv.soDienThoai || '-';
                 const viTri = uv.viTriUngTuyen || '-';
                 const ngayNop = uv.ngayNopHoSo ? new Date(uv.ngayNopHoSo).toLocaleDateString('vi-VN') : '-';
+                const idDanhGia = uv.idDanhGia ?? 0;
                 
                 html += `
-                    <div class="cv-kanban-card" data-id="${uv.id}" data-status="${uv.trangThaiHienTai ?? 0}">
+                    <div class="cv-kanban-card cv-kanban-card-clickable" 
+                         data-id="${uv.id}" 
+                         data-status="${uv.trangThaiHienTai ?? 0}"
+                         data-id-danh-gia="${idDanhGia}">
                         <div class="cv-kanban-card-header">
                             <h6 class="cv-kanban-card-title">${uv.hoTen || 'Chưa có tên'}</h6>
                         </div>
@@ -1955,11 +1959,16 @@ function renderCvKanbanBoard(container, list) {
                             </div>
                             ${uv.duongDanCv ? `
                                 <div class="mt-2">
-                                    <a href="${uv.duongDanCv}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                    <a href="${uv.duongDanCv}" target="_blank" class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation();">
                                         <i class="fa-solid fa-file-pdf me-1"></i>Xem CV
                                     </a>
                                 </div>
                             ` : ''}
+                            <div class="mt-2">
+                                <button class="btn btn-sm btn-outline-info w-100" onclick="event.stopPropagation(); openCvEvaluationModal(${uv.id}, ${idDanhGia})">
+                                    <i class="fa-solid fa-clipboard-check me-1"></i>${idDanhGia === 0 ? 'Thêm đánh giá' : 'Xem đánh giá'}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -1978,6 +1987,9 @@ function renderCvKanbanBoard(container, list) {
     
     // Setup drag and drop với SortableJS
     setupCvKanbanDragAndDrop();
+    
+    // Setup click handlers cho cards
+    setupCvCardClickHandlers(wrapper);
 }
 
 function setupCvKanbanDragAndDrop() {
@@ -2037,4 +2049,166 @@ function setupCvKanbanDragAndDrop() {
             }
         });
     });
+}
+
+// Setup click handlers cho CV cards
+function setupCvCardClickHandlers(wrapper) {
+    const clickableCards = wrapper.querySelectorAll('.cv-kanban-card-clickable');
+    
+    clickableCards.forEach(card => {
+        card.addEventListener('click', (e) => {
+            // Không mở modal nếu click vào button hoặc link
+            if (e.target.closest('button') || e.target.closest('a')) {
+                return;
+            }
+            
+            const idUngVien = parseInt(card.dataset.id);
+            const idDanhGia = parseInt(card.dataset.idDanhGia) || 0;
+            openCvEvaluationModal(idUngVien, idDanhGia);
+        });
+    });
+}
+
+// Mở modal đánh giá ứng viên
+window.openCvEvaluationModal = async function(idUngVien, idDanhGia) {
+    const modal = new bootstrap.Modal(document.getElementById('cvEvaluationModal'));
+    const form = document.getElementById('cvEvaluationForm');
+    
+    // Reset form
+    form.reset();
+    document.getElementById('evaluationId').value = idDanhGia;
+    document.getElementById('evaluationIdUngVien').value = idUngVien;
+    
+    // Set giá trị mặc định
+    document.getElementById('evaluationMaNguoiDanhGia').value = 1; // Mã người đánh giá mặc định = 1
+    
+    // Set ngày đánh giá mặc định = hôm nay
+    const today = new Date();
+    const localDateTime = new Date(today.getTime() - today.getTimezoneOffset() * 60000)
+        .toISOString().slice(0, 16);
+    document.getElementById('evaluationNgayDanhGia').value = localDateTime;
+    
+    // Set title
+    const modalLabel = document.getElementById('cvEvaluationModalLabel');
+    if (idDanhGia === 0) {
+        modalLabel.textContent = 'Thêm đánh giá ứng viên';
+    } else {
+        modalLabel.textContent = 'Cập nhật đánh giá ứng viên';
+    }
+    
+    // Nếu idDanhGia != 0, load dữ liệu từ API
+    if (idDanhGia !== 0) {
+        const btnSave = document.getElementById('btnSaveEvaluation');
+        const originalText = btnSave.innerHTML;
+        btnSave.disabled = true;
+        btnSave.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Đang tải...';
+        
+        try {
+            const response = await UngVienService.getLichSuDanhGiaById(idDanhGia);
+            
+            if (response && response.statusCode === 200) {
+                const data = response.data;
+                
+                // Populate form
+                document.getElementById('evaluationVongPhongVan').value = data.vongPhongVan || '';
+                document.getElementById('evaluationNhanXetChuyenMon').value = data.nhanXetChuyenMon || '';
+                document.getElementById('evaluationDiemSo').value = data.diemSo || '';
+                
+                if (data.ketQua !== null && data.ketQua !== undefined) {
+                    document.getElementById('evaluationKetQua').value = data.ketQua ? 'true' : 'false';
+                }
+                
+                if (data.ngayDanhGia) {
+                    const ngayDanhGia = new Date(data.ngayDanhGia);
+                    const localDateTime = new Date(ngayDanhGia.getTime() - ngayDanhGia.getTimezoneOffset() * 60000)
+                        .toISOString().slice(0, 16);
+                    document.getElementById('evaluationNgayDanhGia').value = localDateTime;
+                }
+                
+                // Nếu có mã người đánh giá từ API thì dùng, không thì giữ mặc định = 1
+                if (data.maNguoiDanhGia) {
+                    document.getElementById('evaluationMaNguoiDanhGia').value = data.maNguoiDanhGia;
+                }
+            } else {
+                showToast('Không thể tải dữ liệu đánh giá: ' + (response?.message || 'Lỗi không xác định'), 'danger');
+            }
+        } catch (error) {
+            console.error('Load evaluation error:', error);
+            showToast('Lỗi khi tải dữ liệu đánh giá', 'danger');
+        } finally {
+            btnSave.disabled = false;
+            btnSave.innerHTML = originalText;
+        }
+    }
+    
+    modal.show();
+};
+
+// Setup save button handler
+document.addEventListener('DOMContentLoaded', () => {
+    const btnSaveEvaluation = document.getElementById('btnSaveEvaluation');
+    if (btnSaveEvaluation) {
+        btnSaveEvaluation.addEventListener('click', handleSaveCvEvaluation);
+    }
+});
+
+async function handleSaveCvEvaluation() {
+    const idDanhGia = parseInt(document.getElementById('evaluationId').value) || 0;
+    const idUngVien = parseInt(document.getElementById('evaluationIdUngVien').value);
+    const vongPhongVan = document.getElementById('evaluationVongPhongVan').value.trim();
+    const nhanXetChuyenMon = document.getElementById('evaluationNhanXetChuyenMon').value.trim();
+    const diemSo = document.getElementById('evaluationDiemSo').value ? parseFloat(document.getElementById('evaluationDiemSo').value) : null;
+    const ketQuaValue = document.getElementById('evaluationKetQua').value;
+    const ketQua = ketQuaValue === '' ? null : (ketQuaValue === 'true');
+    const ngayDanhGiaValue = document.getElementById('evaluationNgayDanhGia').value;
+    const ngayDanhGia = ngayDanhGiaValue ? new Date(ngayDanhGiaValue) : null;
+    const maNguoiDanhGia = document.getElementById('evaluationMaNguoiDanhGia').value ? parseInt(document.getElementById('evaluationMaNguoiDanhGia').value) : null;
+    
+    // Validation
+    if (!vongPhongVan) {
+        showToast('Vui lòng nhập vòng phỏng vấn', 'warning');
+        return;
+    }
+    
+    const btn = document.getElementById('btnSaveEvaluation');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Đang lưu...';
+    
+    try {
+        const data = {
+            Id: idDanhGia,
+            IdUngVien: idUngVien,
+            VongPhongVan: vongPhongVan,
+            NhanXetChuyenMon: nhanXetChuyenMon || null,
+            DiemSo: diemSo,
+            KetQua: ketQua,
+            NgayDanhGia: ngayDanhGia,
+            MaNguoiDanhGia: maNguoiDanhGia
+        };
+        
+        const response = await UngVienService.updateLichSuDanhGia(data);
+        
+        if (response && response.statusCode === 200) {
+            showToast(idDanhGia === 0 ? 'Thêm đánh giá thành công' : 'Cập nhật đánh giá thành công', 'success');
+            
+            // Đóng modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('cvEvaluationModal'));
+            modal.hide();
+            
+            // Reload CV page để cập nhật idDanhGia
+            const contentArea = document.getElementById('content-area');
+            if (contentArea) {
+                loadCvPage(contentArea);
+            }
+        } else {
+            showToast('Lưu thất bại: ' + (response?.message || 'Lỗi không xác định'), 'danger');
+        }
+    } catch (error) {
+        console.error('Save evaluation error:', error);
+        showToast('Lỗi khi lưu đánh giá', 'danger');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
 }

@@ -16,6 +16,10 @@ class UngVienService {
     static async getLichSuDanhGiaById(id) {
         return await API.get(`/UngVien/get-lich-su-danh-gia/${id}`);
     }
+
+    static async updateLichSuDanhGia(data) {
+        return await API.post('/UngVien/update-lich-su-danh-gia', data);
+    }
 }
 
 export default UngVienService;

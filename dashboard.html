@@ -438,6 +438,62 @@
         </div>
     </div>
 
+    <!-- CV Evaluation Modal -->
+    <div class="modal fade" id="cvEvaluationModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="cvEvaluationModalLabel">Lịch sử đánh giá ứng viên</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="cvEvaluationForm">
+                        <input type="hidden" id="evaluationId">
+                        <input type="hidden" id="evaluationIdUngVien">
+                        <div class="mb-3">
+                            <label class="form-label">Vòng phỏng vấn <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="evaluationVongPhongVan" placeholder="Ví dụ: Vòng 1, Vòng 2, Final">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Nhận xét chuyên môn</label>
+                            <textarea class="form-control" id="evaluationNhanXetChuyenMon" rows="4" placeholder="Nhập nhận xét về ứng viên..."></textarea>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Điểm số</label>
+                                <input type="number" step="0.1" min="0" max="10" class="form-control" id="evaluationDiemSo" placeholder="0.0 - 10.0">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Kết quả</label>
+                                <select class="form-select" id="evaluationKetQua">
+                                    <option value="">-- Chọn kết quả --</option>
+                                    <option value="true">Đạt</option>
+                                    <option value="false">Không đạt</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Ngày đánh giá</label>
+                                <input type="datetime-local" class="form-control" id="evaluationNgayDanhGia">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Mã người đánh giá</label>
+                                <input type="number" class="form-control" id="evaluationMaNguoiDanhGia" placeholder="ID người đánh giá">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn btn-primary" id="btnSaveEvaluation">
+                        <i class="fa-solid fa-save me-2"></i>Lưu đánh giá
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Container -->
     <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer"></div>
 
