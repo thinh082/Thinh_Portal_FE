@@ -970,13 +970,63 @@ async function handleOvertimeSubmit(e) {
     btn.disabled = true;
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Đang gửi...';
 
+    // 获取输入值
+    const otStartTime = document.getElementById('otStartTime').value;
+    const otEndTime = document.getElementById('otEndTime').value;
+    const otReason = document.getElementById('otReason').value;
+
+    // 验证必填字段
+    if (!otStartTime || !otEndTime || !otReason) {
+        showToast('Vui lòng điền đầy đủ thông tin', 'warning');
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        return;
+    }
+
+    // 将时间从 input type="time" 格式 (HH:mm) 转换为字符串格式 (HH:mm:ss)
+    // input type="time" 返回格式: "HH:mm" (例如: "09:00")
+    // 后端期望格式: "HH:mm:ss" (例如: "09:00:00")
+    const gioBatDau = otStartTime + ':00';  // 添加秒数部分
+    const gioKetThuc = otEndTime + ':00';   // 添加秒数部分
+
+    // 计算工作小时数
+    // 解析时间字符串 (HH:mm:ss)
+    const [startHour, startMin] = otStartTime.split(':').map(Number);
+    const [endHour, endMin] = otEndTime.split(':').map(Number);
+    
+    // 转换为分钟数
+    let startMinutes = startHour * 60 + startMin;
+    let endMinutes = endHour * 60 + endMin;
+    
+    // 处理跨天情况（结束时间小于开始时间，表示跨到第二天）
+    if (endMinutes < startMinutes) {
+        endMinutes += 24 * 60; // 加一天（1440分钟）
+    }
+    
+    // 计算时间差（分钟）
+    const diffMinutes = endMinutes - startMinutes;
+    
+    // 转换为小时数，四舍五入到 0.5
+    const diffHours = diffMinutes / 60;
+    const soGioLam = Math.round(diffHours * 2) / 2; // 四舍五入到 0.5
+
+    // 验证工作小时数
+    if (soGioLam <= 0) {
+        showToast('Giờ kết thúc phải lớn hơn giờ bắt đầu', 'warning');
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        return;
+    }
+
     const data = {
-        gioBatDau: document.getElementById('otStartTime').value,
-        gioKetThuc: document.getElementById('otEndTime').value,
-        soGioLam: parseFloat(document.getElementById('otHours').value),
+        gioBatDau: gioBatDau,        // 格式: "HH:mm:ss"
+        gioKetThuc: gioKetThuc,      // 格式: "HH:mm:ss"
+        soGioLam: soGioLam,          // 计算出的工作小时数
         heSo: 1.5,
-        lyDoTangCa: document.getElementById('otReason').value
+        lyDoTangCa: otReason
     };
+
+    console.log('Gửi dữ liệu tăng ca:', JSON.stringify(data, null, 2));
 
     try {
         const response = await OvertimeService.requestOt(data);
