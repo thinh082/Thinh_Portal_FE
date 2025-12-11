@@ -398,7 +398,7 @@
                 const isSelf = currentUserId && m.idNguoiGui === currentUserId;
                 const time = formatTime(m.thoiGianGui);
                 return `
-                    <div class="message-row ${isSelf ? 'self' : ''}">
+                    <div class="message-row ${isSelf ? 'self' : ''}" data-message-id="${m.id}">
                         ${isSelf ? '' : `<div class="avatar" style="width:32px;height:32px;font-size:0.85rem;">${getInitials('User')}</div>`}
                         <div class="bubble">
                             <div>${m.noiDung || ''}</div>
@@ -415,10 +415,49 @@
 
         // Append single message to UI
         function appendMessage(message) {
+            // Check if this is a duplicate (real message replacing temp message)
+            const isTempId = typeof message.id === 'string' && message.id.startsWith('temp-');
+            const realMessageId = isTempId ? null : message.id;
+            
+            // If we receive a real message that matches a pending temp message, replace it
+            if (realMessageId && pendingMessageIds.size > 0) {
+                // Find temp message with same content and sender
+                const tempRows = chatMessagesEl.querySelectorAll('[data-temp-id]');
+                for (const tempRow of tempRows) {
+                    const tempId = tempRow.getAttribute('data-temp-id');
+                    const tempContent = tempRow.querySelector('.bubble > div')?.textContent?.trim();
+                    if (tempId && tempContent === message.noiDung && 
+                        tempId.startsWith('temp-') && message.idNguoiGui === currentUserId) {
+                        // Remove temp message
+                        tempRow.remove();
+                        pendingMessageIds.delete(tempId);
+                        break;
+                    }
+                }
+            }
+            
+            // Don't add if we already have this message (by ID)
+            if (realMessageId) {
+                const existingRow = chatMessagesEl.querySelector(`[data-message-id="${realMessageId}"]`);
+                if (existingRow) {
+                    // Message already exists, just scroll
+                    chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+                    return;
+                }
+            }
+            
             const isSelf = currentUserId && message.idNguoiGui === currentUserId;
             const time = formatTime(message.thoiGianGui);
             const row = document.createElement('div');
             row.className = `message-row ${isSelf ? 'self' : ''}`;
+            
+            // Add data attributes for tracking
+            if (isTempId) {
+                row.setAttribute('data-temp-id', message.id);
+            } else if (realMessageId) {
+                row.setAttribute('data-message-id', realMessageId);
+            }
+            
             row.innerHTML = `
                 ${isSelf ? '' : `<div class="avatar" style="width:32px;height:32px;font-size:0.85rem;">${getInitials('User')}</div>`}
                 <div class="bubble">
@@ -470,6 +509,9 @@
                         };
                         renderConversations(conversations);
                     }
+                    
+                    // The appendMessage function will handle replacing temp messages
+                    // No need to manually clear here as appendMessage does it
                 });
 
                 await connection.start();
@@ -482,6 +524,8 @@
         // Send message handler
         const sendBtn = document.querySelector('.btn-send');
         const textarea = document.querySelector('.chat-input textarea');
+        let pendingMessageIds = new Set(); // Track messages we've already shown optimistically
+        
         async function handleSendMessage() {
             if (!activeConversationId) {
                 showToast('Vui lòng chọn cuộc trò chuyện', 'warning');
@@ -489,16 +533,57 @@
             }
             const content = (textarea.value || '').trim();
             if (!content) return;
+            
+            // Disable send button while sending
+            const originalBtnText = sendBtn.innerHTML;
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+            
+            // Optimistic update: show message immediately
+            const tempMessage = {
+                id: `temp-${Date.now()}`, // Temporary ID
+                idCuocTroChuyen: activeConversationId,
+                idNguoiGui: currentUserId,
+                noiDung: content,
+                thoiGianGui: new Date().toISOString(),
+                DaXem: false
+            };
+            appendMessage(tempMessage);
+            pendingMessageIds.add(tempMessage.id);
+            
+            // Clear textarea
+            textarea.value = '';
+            
             try {
-                await API.post('/TinNhan/send', {
+                const response = await API.post('/TinNhan/send', {
                     IdCuocTroChuyen: activeConversationId,
                     NoiDung: content
                 });
-                textarea.value = '';
-                // Tin nhắn sẽ được append qua SignalR ReceiveMessage
+                
+                // Remove temporary message if we get the real one from SignalR
+                // The real message will come via SignalR ReceiveMessage event
+                // We'll handle duplicate prevention in appendMessage
+                
+                // Re-enable button
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = originalBtnText;
             } catch (err) {
                 console.error(err);
                 showToast('Không gửi được tin nhắn', 'danger');
+                
+                // Remove the optimistic message on error
+                const tempRow = chatMessagesEl.querySelector(`[data-temp-id="${tempMessage.id}"]`);
+                if (tempRow) {
+                    tempRow.remove();
+                }
+                pendingMessageIds.delete(tempMessage.id);
+                
+                // Restore textarea content
+                textarea.value = content;
+                
+                // Re-enable button
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = originalBtnText;
             }
         }
         if (sendBtn) sendBtn.addEventListener('click', handleSendMessage);
