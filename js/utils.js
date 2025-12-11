@@ -31,6 +31,23 @@ export const formatMoney = (amount) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
 };
 
+// 格式化数字为越南盾格式（用于输入框显示）
+export const formatMoneyInput = (value) => {
+    if (!value) return '';
+    // 移除所有非数字字符
+    const numericValue = value.toString().replace(/\D/g, '');
+    if (!numericValue) return '';
+    // 格式化为越南盾
+    return new Intl.NumberFormat('vi-VN').format(parseInt(numericValue)) + ' ₫';
+};
+
+// 从格式化字符串中提取纯数字
+export const parseMoneyInput = (formattedValue) => {
+    if (!formattedValue) return '';
+    // 移除所有非数字字符
+    return formattedValue.toString().replace(/\D/g, '');
+};
+
 // --- Dark Mode Functions ---
 export function initDarkMode() {
     // Load saved theme preference

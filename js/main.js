@@ -89,6 +89,26 @@ function setupEventListeners() {
     if (btnSavePassword) {
         btnSavePassword.addEventListener('click', handlePasswordChange);
     }
+
+    // Staff Save Button
+    const saveStaffBtn = document.getElementById('saveStaffBtn');
+    if (saveStaffBtn) {
+        saveStaffBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleSaveStaff();
+        });
+    }
+
+    // Prevent form submission for staffForm
+    const staffForm = document.getElementById('staffForm');
+    if (staffForm) {
+        staffForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleSaveStaff();
+        });
+    }
 }
 
 // --- Page Loading Logic ---
@@ -1621,6 +1641,14 @@ function renderProjectTable(container, list) {
 }
 
 function renderOvertimeAdminTable(container, list) {
+    // 先删除旧的 overtime 表格（如果存在）
+    const allCards = container.querySelectorAll('.card-custom');
+    allCards.forEach(card => {
+        if (card.textContent.includes('Đơn tăng ca hôm nay')) {
+            card.remove();
+        }
+    });
+    
     const wrapper = document.createElement('div');
     wrapper.className = 'card-custom';
 
@@ -1880,6 +1908,9 @@ async function openEditModal(id) {
             } else {
                 document.getElementById('salary').value = '';
             }
+            // 填充经验年限和技能
+            document.getElementById('experience').value = staff.soNamKinhNghiem || '';
+            document.getElementById('skills').value = staff.moTaKyNang || '';
 
             document.getElementById('staffModalLabel').textContent = 'Sửa nhân viên';
             setupSalaryInputFormatting();
@@ -1894,51 +1925,59 @@ async function openEditModal(id) {
 }
 
 async function handleSaveStaff() {
+    console.log('handleSaveStaff called'); // Debug log
     const id = document.getElementById('staffId').value;
+    console.log('Staff ID:', id); // Debug log
     const data = {
-        hoTen: document.getElementById('fullName').value,
-        ngaySinh: document.getElementById('dob').value || null,
-        gioiTinh: document.getElementById('gender').value,
-        soDienThoai: document.getElementById('phone').value,
-        email: document.getElementById('email').value,
-        diaChi: document.getElementById('address').value,
-        idPhongBan: document.getElementById('departmentId').value ? parseInt(document.getElementById('departmentId').value) : null,
-        chucVu: document.getElementById('position').value,
-        luongCoBan: (() => {
+        HoTen: document.getElementById('fullName').value,
+        NgaySinh: document.getElementById('dob').value || null,
+        GioiTinh: document.getElementById('gender').value,
+        DiaChi: document.getElementById('address').value,
+        IdPhongBan: document.getElementById('departmentId').value ? parseInt(document.getElementById('departmentId').value) : null,
+        ChucVu: document.getElementById('position').value,
+        LuongCoBan: (() => {
             const salaryValue = document.getElementById('salary').value;
             if (!salaryValue) return null;
             // 从格式化字符串中提取纯数字
             const numericValue = parseMoneyInput(salaryValue);
             return numericValue ? parseFloat(numericValue) : null;
-        })()
+        })(),
+        Email: document.getElementById('email').value || null,
+        SoDienThoai: document.getElementById('phone').value || null,
+        SoNamKinhNghiem: document.getElementById('experience').value ? parseInt(document.getElementById('experience').value) : null,
+        MoTaKyNang: document.getElementById('skills').value || null
     };
 
-    if (!data.hoTen) {
-        alert('Họ và tên là bắt buộc');
+    if (!data.HoTen) {
+        showToast('Họ và tên là bắt buộc', 'warning');
         return;
     }
 
     try {
+        console.log('Sending data:', data); // Debug log
         let response;
         if (id) {
             // Update
-            data.id = parseInt(id);
+            data.Id = parseInt(id);
+            console.log('Updating staff with ID:', id); // Debug log
             response = await StaffService.update(data);
         } else {
             // Create
+            console.log('Creating new staff'); // Debug log
             response = await StaffService.create(data);
         }
+        console.log('API Response:', response); // Debug log
 
         if (response && response.statusCode === 200) {
-            alert(id ? 'Cập nhật nhân viên thành công' : 'Thêm nhân viên thành công');
+            showToast(id ? 'Cập nhật nhân viên thành công' : 'Thêm nhân viên thành công', 'success');
             staffModal.hide();
             loadPage('staff'); // Reload table
         } else {
-            alert('Lưu thất bại: ' + (response?.message || 'Lỗi không xác định'));
+            showToast('Lưu thất bại: ' + (response?.message || 'Lỗi không xác định'), 'danger');
         }
     } catch (error) {
         console.error('Save Staff Error:', error);
-        alert('Lỗi khi lưu nhân viên');
+        showToast('Lỗi khi lưu nhân viên: ' + (error.message || 'Lỗi không xác định'), 'danger');
     }
 }
 

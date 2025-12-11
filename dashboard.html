@@ -255,12 +255,31 @@
                             </div>
                             <div class="col-md-6">
                                 <label for="position" class="form-label">Chức vụ</label>
-                                <input type="text" class="form-control" id="position">
+                                <select class="form-select" id="position">
+                                    <option value="">-- Chọn chức vụ --</option>
+                                    <option value="Admin hệ thống">Admin hệ thống</option>
+                                    <option value="Quản lý dự án">Quản lý dự án</option>
+                                    <option value="Lập trình viên">Lập trình viên</option>
+                                    <option value="QA">QA</option>
+                                    <option value="Nhân sự">Nhân sự</option>
+                                    <option value="Thực tập sinh">Thực tập sinh</option>
+                                    <option value="Trưởng nhóm Dev">Trưởng nhóm Dev</option>
+                                </select>
                             </div>
                         </div>
                         <div class="mb-3">
                             <label for="salary" class="form-label">Lương cơ bản</label>
-                            <input type="number" class="form-control" id="salary">
+                            <input type="text" class="form-control" id="salary" placeholder="Nhập số tiền">
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="experience" class="form-label">Kinh nghiệm (năm)</label>
+                                <input type="number" class="form-control" id="experience" min="0" placeholder="Số năm kinh nghiệm">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="skills" class="form-label">Kỹ năng</label>
+                                <input type="text" class="form-control" id="skills" placeholder="Mô tả kỹ năng">
+                            </div>
                         </div>
                     </form>
                 </div>

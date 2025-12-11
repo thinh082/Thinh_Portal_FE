@@ -12,6 +12,10 @@ class OvertimeService {
     static async getAllOt() {
         return await API.get('/TangCa/get-all-ot');
     }
+
+    static async updateStatus(id, trangThai) {
+        return await API.post('/TangCa/status-ot', { id, trangThai });
+    }
 }
 
 export default OvertimeService;
