@@ -131,55 +131,32 @@ function loadPage(page) {
     profileSection.style.display = 'none';
     contentArea.innerHTML = '';
 
-    // Update Breadcrumb (Simple implementation)
-    const pageTitle = page.charAt(0).toUpperCase() + page.slice(1);
-    const breadcrumbHtml = `
-        <div class="page-header">
-            <h1 class="page-title">${page === 'dashboard' ? 'Bảng điều khiển' : pageTitle + ' Management'}</h1>
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="#">Trang chủ</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">${pageTitle}</li>
-                </ol>
-            </nav>
-        </div>
-    `;
-
     switch (page) {
         case 'staff':
-            contentArea.innerHTML = breadcrumbHtml;
             loadStaffPage(contentArea);
             break;
         case 'dashboard':
-            contentArea.innerHTML = breadcrumbHtml;
             loadDashboard(contentArea);
             break;
         case 'department':
-            contentArea.innerHTML = breadcrumbHtml;
             loadDepartmentPage(contentArea);
             break;
         case 'leave':
-            contentArea.innerHTML = breadcrumbHtml;
             loadLeavePage(contentArea);
             break;
         case 'salary':
-            contentArea.innerHTML = breadcrumbHtml;
             loadSalaryPage(contentArea);
             break;
         case 'tasks':
-            contentArea.innerHTML = breadcrumbHtml;
             loadTaskPage(contentArea);
             break;
         case 'overtime':
-            contentArea.innerHTML = breadcrumbHtml;
             loadOvertimeAdminPage(contentArea);
             break;
         case 'project':
-            contentArea.innerHTML = breadcrumbHtml;
             loadProjectPage(contentArea);
             break;
         case 'cv':
-            contentArea.innerHTML = breadcrumbHtml;
             loadCvPage(contentArea);
             break;
         default:
