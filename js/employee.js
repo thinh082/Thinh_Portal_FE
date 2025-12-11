@@ -236,7 +236,7 @@ async function loadProfile() {
 
     // Set Avatar & Basic Info
     document.getElementById('profileName').textContent = user.hoTen || user.username;
-    document.getElementById('profileRole').textContent = user.role || 'Employee';
+    document.getElementById('profileRole').textContent = user.role || 'Nhân viên';
     document.getElementById('profileAvatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.hoTen || user.username)}&background=0d6efd&color=fff&size=128`;
 
     try {
@@ -248,7 +248,7 @@ async function loadProfile() {
                 // Populate Form
                 document.getElementById('profileId').value = data.id;
                 document.getElementById('profileJoinDate').value = new Date().toISOString().split('T')[0]; // Mock Join Date
-                document.getElementById('profileDept').value = data.tenPhongBan || 'Unknown';
+                document.getElementById('profileDept').value = data.tenPhongBan || 'Chưa xác định';
                 document.getElementById('profilePosition').value = data.chucVu || '-';
 
                 document.getElementById('profileEmail').value = data.email || '';
@@ -261,7 +261,7 @@ async function loadProfile() {
         }
     } catch (error) {
         console.error('Load Profile Error:', error);
-        showToast('Failed to load profile details', 'danger');
+        showToast('Không thể tải thông tin hồ sơ', 'danger');
     }
 }
 
@@ -269,7 +269,7 @@ async function handleUpdateProfile() {
     const btn = document.getElementById('btnSaveProfile');
     const originalText = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Saving...';
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Đang lưu...';
 
     const id = document.getElementById('profileId').value;
     const data = {
@@ -294,14 +294,14 @@ async function handleUpdateProfile() {
 
             const response = await StaffService.update(updatePayload);
             if (response && response.statusCode === 200) {
-                showToast('Profile updated successfully!', 'success');
+                showToast('Cập nhật hồ sơ thành công!', 'success');
             } else {
-                showToast('Failed to update profile: ' + (response?.message || 'Unknown error'), 'danger');
+                showToast('Cập nhật hồ sơ thất bại: ' + (response?.message || 'Lỗi không xác định'), 'danger');
             }
         }
     } catch (error) {
         console.error('Update Profile Error:', error);
-        showToast('Error updating profile', 'danger');
+        showToast('Lỗi khi cập nhật hồ sơ', 'danger');
     } finally {
         btn.disabled = false;
         btn.innerHTML = originalText;
@@ -313,23 +313,23 @@ function handlePasswordChange() {
     const confirmPass = document.getElementById('confirmPassword').value;
 
     if (newPass !== confirmPass) {
-        alert('Passwords do not match!');
+        alert('Mật khẩu không khớp!');
         return;
     }
 
     if (newPass.length < 6) {
-        alert('Password must be at least 6 characters.');
+        alert('Mật khẩu phải có ít nhất 6 ký tự.');
         return;
     }
 
     const btn = document.getElementById('btnSavePassword');
     btn.disabled = true;
-    btn.textContent = 'Updating...';
+    btn.textContent = 'Đang cập nhật...';
 
     setTimeout(() => {
         btn.disabled = false;
-        btn.textContent = 'Update';
-        alert('Password changed successfully! (Mock)');
+        btn.textContent = 'Cập nhật';
+        alert('Đổi mật khẩu thành công! (Mock)');
         const modal = bootstrap.Modal.getInstance(document.getElementById('changePasswordModal'));
         modal.hide();
         document.getElementById('changePasswordForm').reset();
@@ -338,25 +338,25 @@ function handlePasswordChange() {
 
 // --- Salary Logic ---
 async function loadSalaryPage(container) {
-    showLoading(container, 'Loading Salary Info...');
+    showLoading(container, 'Đang tải thông tin lương...');
     try {
         const response = await SalaryService.getMySalary();
         container.lastElementChild.remove();
         if (response && response.statusCode === 200) {
             renderSalaryTable(container, response.data);
         } else {
-            container.innerHTML += `<div class="alert alert-danger">Failed to load salary: ${response?.message || 'Unknown error'}</div>`;
+            container.innerHTML += `<div class="alert alert-danger">Không thể tải thông tin lương: ${response?.message || 'Lỗi không xác định'}</div>`;
         }
     } catch (error) {
         if (container.lastElementChild) container.lastElementChild.remove();
-        container.innerHTML += `<div class="alert alert-danger">Error: ${error.message}</div>`;
+        container.innerHTML += `<div class="alert alert-danger">Lỗi: ${error.message}</div>`;
     }
 }
 
 function renderSalaryTable(container, list) {
     const wrapper = document.createElement('div');
     wrapper.className = 'card-custom';
-    let html = `<h5 class="card-title mb-4">My Salary History</h5><div class="table-responsive"><table class="table table-hover"><thead><tr><th>Month/Year</th><th>Base Salary</th><th>Work Days</th><th>Bonus</th><th>Total</th></tr></thead><tbody>`;
+    let html = `<h5 class="card-title mb-4">Lịch sử lương của tôi</h5><div class="table-responsive"><table class="table table-hover"><thead><tr><th>Tháng/Năm</th><th>Lương cơ bản</th><th>Ngày công</th><th>Thưởng</th><th>Tổng</th></tr></thead><tbody>`;
     list.forEach(item => {
         html += `<tr>
             <td class="fw-bold">${item.thang}/${item.nam}</td>
@@ -386,7 +386,7 @@ function renderSalaryExportControls(container) {
             </div>
             <div class="col-md-6 text-end">
                 <button class="btn btn-outline-danger me-2" id="btnExportPdfEmployee">
-                    <i class="fa-solid fa-file-pdf me-1"></i> Export PDF
+                    <i class="fa-solid fa-file-pdf me-1"></i> Xuất PDF
                 </button>
             </div>
         </div>
@@ -409,7 +409,7 @@ function renderSalaryExportControls(container) {
                 showToast('Xuất PDF thất bại', 'danger');
             } finally {
                 btnExportPdf.disabled = false;
-                btnExportPdf.innerHTML = '<i class="fa-solid fa-file-pdf me-1"></i> Export PDF';
+                btnExportPdf.innerHTML = '<i class="fa-solid fa-file-pdf me-1"></i> Xuất PDF';
             }
         });
     }
@@ -899,7 +899,7 @@ async function loadOvertimePage(section) {
     if (!listContainer) return;
 
     listContainer.innerHTML = '';
-    showLoading(listContainer, 'Loading overtime requests...');
+    showLoading(listContainer, 'Đang tải đơn tăng ca...');
 
     try {
         const response = await OvertimeService.getMyOt();
@@ -907,11 +907,11 @@ async function loadOvertimePage(section) {
         if (response && response.statusCode === 200) {
             renderOvertimeTable(listContainer, response.data || []);
         } else {
-            listContainer.innerHTML = `<div class="alert alert-danger">Failed to load overtime requests: ${response?.message || 'Unknown error'}</div>`;
+            listContainer.innerHTML = `<div class="alert alert-danger">Không thể tải đơn tăng ca: ${response?.message || 'Lỗi không xác định'}</div>`;
         }
     } catch (error) {
         console.error('Load OT error:', error);
-        listContainer.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+        listContainer.innerHTML = `<div class="alert alert-danger">Lỗi: ${error.message}</div>`;
     }
 }
 
@@ -922,19 +922,19 @@ function renderOvertimeTable(container, list) {
             <table class="table table-hover align-middle">
                 <thead>
                     <tr>
-                        <th>Date</th>
-                        <th>Start</th>
-                        <th>End</th>
-                        <th>Hours</th>
-                        <th>Coefficient</th>
-                        <th>Reason</th>
-                        <th>Status</th>
+                        <th>Ngày</th>
+                        <th>Bắt đầu</th>
+                        <th>Kết thúc</th>
+                        <th>Số giờ</th>
+                        <th>Hệ số</th>
+                        <th>Lý do</th>
+                        <th>Trạng thái</th>
                     </tr>
                 </thead>
                 <tbody>`;
 
     if (!list || list.length === 0) {
-        html += `<tr><td colspan="7" class="text-center">No overtime requests found.</td></tr>`;
+        html += `<tr><td colspan="7" class="text-center">Không tìm thấy đơn tăng ca nào.</td></tr>`;
     } else {
         list.forEach(item => {
             let badgeClass = 'bg-secondary';
@@ -968,7 +968,7 @@ async function handleOvertimeSubmit(e) {
     const btn = e.target.querySelector('button[type="submit"]');
     const originalText = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Submitting...';
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Đang gửi...';
 
     const data = {
         gioBatDau: document.getElementById('otStartTime').value,
@@ -981,7 +981,7 @@ async function handleOvertimeSubmit(e) {
     try {
         const response = await OvertimeService.requestOt(data);
         if (response && response.statusCode === 200) {
-            showToast('Overtime request submitted successfully!', 'success');
+            showToast('Gửi đơn tăng ca thành công!', 'success');
             document.getElementById('overtimeForm').reset();
 
             const listContainer = document.getElementById('otListContainer');
@@ -989,11 +989,11 @@ async function handleOvertimeSubmit(e) {
                 loadOvertimePage(document.getElementById('overtime-section'));
             }
         } else {
-            showToast(response?.message || 'Error submitting overtime request', 'danger');
+            showToast(response?.message || 'Lỗi khi gửi đơn tăng ca', 'danger');
         }
     } catch (error) {
         console.error('Overtime Submit Error:', error);
-        showToast('Error submitting overtime request', 'danger');
+        showToast('Lỗi khi gửi đơn tăng ca', 'danger');
     } finally {
         btn.disabled = false;
         btn.innerHTML = originalText;
@@ -1002,17 +1002,17 @@ async function handleOvertimeSubmit(e) {
 
 // --- Leave Requests Logic ---
 async function loadLeavePage(container) {
-    showLoading(container, 'Loading leave requests...');
+    showLoading(container, 'Đang tải đơn nghỉ phép...');
     try {
         const response = await LeaveService.getMyLeaveRequests();
         container.innerHTML = '';
         if (response && response.statusCode === 200) {
             renderLeaveRequestsTable(container, response.data);
         } else {
-            container.innerHTML = `<div class="alert alert-danger">Failed to load leave requests: ${response?.message || 'Unknown error'}</div>`;
+            container.innerHTML = `<div class="alert alert-danger">Không thể tải đơn nghỉ phép: ${response?.message || 'Lỗi không xác định'}</div>`;
         }
     } catch (error) {
-        container.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+        container.innerHTML = `<div class="alert alert-danger">Lỗi: ${error.message}</div>`;
     }
 }
 
@@ -1022,27 +1022,27 @@ function renderLeaveRequestsTable(container, list) {
 
     let html = `
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h5 class="card-title mb-0">My Leave Requests</h5>
+            <h5 class="card-title mb-0">Đơn nghỉ phép của tôi</h5>
             <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#leaveRequestModal">
-                <i class="fa-solid fa-calendar-plus me-2"></i> Request Leave
+                <i class="fa-solid fa-calendar-plus me-2"></i> Xin nghỉ phép
             </button>
         </div>
         <div class="table-responsive">
             <table class="table table-hover">
                 <thead>
                     <tr>
-                        <th>Start Date</th>
-                        <th>End Date</th>
-                        <th>Reason</th>
-                        <th>Status</th>
-                        <th>Approver</th>
-                        <th>Approval Date</th>
+                        <th>Ngày bắt đầu</th>
+                        <th>Ngày kết thúc</th>
+                        <th>Lý do</th>
+                        <th>Trạng thái</th>
+                        <th>Người duyệt</th>
+                        <th>Ngày duyệt</th>
                     </tr>
                 </thead>
                 <tbody>`;
 
     if (list.length === 0) {
-        html += `<tr><td colspan="6" class="text-center">No leave requests found.</td></tr>`;
+        html += `<tr><td colspan="6" class="text-center">Không tìm thấy đơn nghỉ phép nào.</td></tr>`;
     } else {
         list.forEach(item => {
             let badgeClass = 'bg-secondary';
@@ -1074,7 +1074,7 @@ async function handleLeaveRequestSubmit() {
     const btn = document.getElementById('btnSubmitLeaveRequest');
     const originalText = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Submitting...';
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Đang gửi...';
 
     const data = {
         ngayBatDau: document.getElementById('leaveStartDate').value,
@@ -1085,7 +1085,7 @@ async function handleLeaveRequestSubmit() {
     try {
         const response = await LeaveService.create(data);
         if (response && response.statusCode === 200) {
-            showToast('Leave request submitted successfully!', 'success');
+            showToast('Gửi đơn nghỉ phép thành công!', 'success');
             document.getElementById('leaveRequestForm').reset();
 
             // Close modal
@@ -1098,11 +1098,11 @@ async function handleLeaveRequestSubmit() {
                 loadLeavePage(leaveSection);
             }
         } else {
-            showToast('Failed to submit leave request: ' + (response?.message || 'Unknown error'), 'danger');
+            showToast('Gửi đơn nghỉ phép thất bại: ' + (response?.message || 'Lỗi không xác định'), 'danger');
         }
     } catch (error) {
         console.error('Leave Request Submit Error:', error);
-        showToast('Error submitting leave request', 'danger');
+        showToast('Lỗi khi gửi đơn nghỉ phép', 'danger');
     } finally {
         btn.disabled = false;
         btn.innerHTML = originalText;

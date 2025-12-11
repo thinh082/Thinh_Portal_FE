@@ -115,10 +115,10 @@ function loadPage(page) {
     const pageTitle = page.charAt(0).toUpperCase() + page.slice(1);
     const breadcrumbHtml = `
         <div class="page-header">
-            <h1 class="page-title">${page === 'dashboard' ? 'Dashboard' : pageTitle + ' Management'}</h1>
+            <h1 class="page-title">${page === 'dashboard' ? 'Bảng điều khiển' : pageTitle + ' Management'}</h1>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="#">Home</a></li>
+                    <li class="breadcrumb-item"><a href="#">Trang chủ</a></li>
                     <li class="breadcrumb-item active" aria-current="page">${pageTitle}</li>
                 </ol>
             </nav>
@@ -163,7 +163,7 @@ function loadPage(page) {
             loadCvPage(contentArea);
             break;
         default:
-            contentArea.innerHTML = '<h2>404</h2><p>Page not found.</p>';
+            contentArea.innerHTML = '<h2>404</h2><p>Không tìm thấy trang.</p>';
     }
 }
 
@@ -176,7 +176,7 @@ async function loadProfile() {
 
     // Set Avatar & Basic Info
     document.getElementById('profileName').textContent = user.hoTen || user.username;
-    document.getElementById('profileRole').textContent = user.role || 'Employee';
+    document.getElementById('profileRole').textContent = user.role || 'Nhân viên';
     document.getElementById('profileAvatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.hoTen || user.username)}&background=0d6efd&color=fff&size=128`;
 
     try {
@@ -196,7 +196,7 @@ async function loadProfile() {
                 // Populate Form
                 document.getElementById('profileId').value = data.id;
                 document.getElementById('profileJoinDate').value = new Date().toISOString().split('T')[0]; // Mock Join Date
-                document.getElementById('profileDept').value = data.tenPhongBan || 'Unknown';
+                document.getElementById('profileDept').value = data.tenPhongBan || 'Chưa xác định';
                 document.getElementById('profilePosition').value = data.chucVu || '-';
 
                 document.getElementById('profileEmail').value = data.email || '';
@@ -213,7 +213,7 @@ async function loadProfile() {
         }
     } catch (error) {
         console.error('Load Profile Error:', error);
-        showToast('Failed to load profile details', 'danger');
+        showToast('Không thể tải thông tin hồ sơ', 'danger');
     }
 }
 
@@ -221,7 +221,7 @@ async function handleUpdateProfile() {
     const btn = document.getElementById('btnSaveProfile');
     const originalText = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Saving...';
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Đang lưu...';
 
     const id = document.getElementById('profileId').value;
     const data = {
@@ -255,14 +255,14 @@ async function handleUpdateProfile() {
             // 3. Update
             const response = await StaffService.update(updatePayload);
             if (response && response.statusCode === 200) {
-                showToast('Profile updated successfully!', 'success');
+                showToast('Cập nhật hồ sơ thành công!', 'success');
             } else {
-                showToast('Failed to update profile: ' + (response?.message || 'Unknown error'), 'danger');
+                showToast('Cập nhật hồ sơ thất bại: ' + (response?.message || 'Lỗi không xác định'), 'danger');
             }
         }
     } catch (error) {
         console.error('Update Profile Error:', error);
-        showToast('Error updating profile', 'danger');
+        showToast('Lỗi khi cập nhật hồ sơ', 'danger');
     } finally {
         btn.disabled = false;
         btn.innerHTML = originalText;
@@ -275,24 +275,24 @@ function handlePasswordChange() {
     const confirmPass = document.getElementById('confirmPassword').value;
 
     if (newPass !== confirmPass) {
-        alert('Passwords do not match!');
+        alert('Mật khẩu không khớp!');
         return;
     }
 
     if (newPass.length < 6) {
-        alert('Password must be at least 6 characters.');
+        alert('Mật khẩu phải có ít nhất 6 ký tự.');
         return;
     }
 
     // Simulate API Call
     const btn = document.getElementById('btnSavePassword');
     btn.disabled = true;
-    btn.textContent = 'Updating...';
+    btn.textContent = 'Đang cập nhật...';
 
     setTimeout(() => {
         btn.disabled = false;
-        btn.textContent = 'Update';
-        alert('Password changed successfully! (Mock)');
+        btn.textContent = 'Cập nhật';
+        alert('Đổi mật khẩu thành công! (Mock)');
         const modal = bootstrap.Modal.getInstance(document.getElementById('changePasswordModal'));
         modal.hide();
         document.getElementById('changePasswordForm').reset();
@@ -311,7 +311,7 @@ async function loadDashboard(container) {
 }
 
 async function renderAdminDashboard(container) {
-    showLoading(container, 'Loading dashboard stats...');
+    showLoading(container, 'Đang tải thống kê bảng điều khiển...');
 
     try {
         const [staffRes, statsRes] = await Promise.all([
@@ -328,19 +328,19 @@ async function renderAdminDashboard(container) {
             <div class="row mb-4">
             <div class="col-md-4">
                 <div class="card-custom">
-                    <h5>Total Staff</h5>
+                    <h5>Tổng nhân viên</h5>
                     <h2 class="text-primary fw-bold">${staffCount}</h2>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="card-custom">
-                        <h5>Total Salary Records</h5>
+                        <h5>Tổng bản ghi lương</h5>
                         <h2 class="text-success fw-bold">${stats ? stats.salaryByMonth.length : 0}</h2>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="card-custom">
-                        <h5>Open Tasks</h5>
+                        <h5>Công việc đang mở</h5>
                         <h2 class="text-danger fw-bold">${stats ? stats.taskStatus.reduce((sum, x) => sum + (x.soLuong || 0), 0) : 0}</h2>
                     </div>
                 </div>
@@ -349,13 +349,13 @@ async function renderAdminDashboard(container) {
             <div class="row mb-4">
                 <div class="col-md-6">
                     <div class="card-custom">
-                        <h5 class="card-title mb-3">Salary by Month</h5>
+                        <h5 class="card-title mb-3">Lương theo tháng</h5>
                         <canvas id="salaryChart" height="180"></canvas>
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="card-custom">
-                        <h5 class="card-title mb-3">Leave Days by Month</h5>
+                        <h5 class="card-title mb-3">Ngày nghỉ theo tháng</h5>
                         <canvas id="leaveChart" height="180"></canvas>
                     </div>
                 </div>
@@ -364,13 +364,13 @@ async function renderAdminDashboard(container) {
             <div class="row mb-4">
                 <div class="col-md-6">
                     <div class="card-custom">
-                        <h5 class="card-title mb-3">Attendance Last 7 Days</h5>
+                        <h5 class="card-title mb-3">Chấm công 7 ngày qua</h5>
                         <canvas id="attendanceChart" height="180"></canvas>
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="card-custom">
-                        <h5 class="card-title mb-3">Task Status Distribution</h5>
+                        <h5 class="card-title mb-3">Phân bổ trạng thái công việc</h5>
                         <canvas id="taskStatusChart" height="180"></canvas>
                     </div>
                 </div>
@@ -379,7 +379,7 @@ async function renderAdminDashboard(container) {
             <div class="row mb-4">
                 <div class="col-md-12">
                     <div class="card-custom">
-                        <h5 class="card-title mb-3">Top 5 Overtime by Employee</h5>
+                        <h5 class="card-title mb-3">Top 5 tăng ca theo nhân viên</h5>
                         <canvas id="overtimeChart" height="200"></canvas>
                 </div>
             </div>
@@ -394,7 +394,7 @@ async function renderAdminDashboard(container) {
     } catch (error) {
         console.error('Admin dashboard error:', error);
         if (container.lastElementChild) container.lastElementChild.remove();
-        container.innerHTML += `<div class="alert alert-danger">Error loading dashboard: ${error.message}</div>`;
+        container.innerHTML += `<div class="alert alert-danger">Lỗi khi tải bảng điều khiển: ${error.message}</div>`;
     }
 }
 
@@ -424,7 +424,7 @@ function renderDashboardCharts(stats) {
             data: {
                 labels: salaryLabels,
                 datasets: [{
-                    label: 'Total Salary',
+                    label: 'Tổng lương',
                     data: salaryData,
                     backgroundColor: 'rgba(59,130,246,0.6)'
                 }]
@@ -440,7 +440,7 @@ function renderDashboardCharts(stats) {
             data: {
                 labels: leaveLabels,
                 datasets: [{
-                    label: 'Leave Days',
+                    label: 'Ngày nghỉ',
                     data: leaveData,
                     borderColor: 'rgba(34,197,94,1)',
                     backgroundColor: 'rgba(34,197,94,0.2)',
@@ -460,7 +460,7 @@ function renderDashboardCharts(stats) {
                 labels: attendanceLabels,
                 datasets: [
                     {
-                        label: 'On Time',
+                        label: 'Đúng giờ',
                         data: attendanceOnTime,
                         borderColor: 'rgba(59,130,246,1)',
                         backgroundColor: 'rgba(59,130,246,0.2)',
@@ -468,7 +468,7 @@ function renderDashboardCharts(stats) {
                         tension: 0.3
                     },
                     {
-                        label: 'Total',
+                        label: 'Tổng',
                         data: attendanceTotal,
                         borderColor: 'rgba(148,163,184,1)',
                         backgroundColor: 'rgba(148,163,184,0.2)',
@@ -503,7 +503,7 @@ function renderDashboardCharts(stats) {
             data: {
                 labels: overtimeLabels,
                 datasets: [{
-                    label: 'OT Hours',
+                    label: 'Giờ tăng ca',
                     data: overtimeData,
                     backgroundColor: 'rgba(234,179,8,0.7)'
                 }]
@@ -518,7 +518,7 @@ function renderDashboardCharts(stats) {
 }
 
 async function renderEmployeeDashboard(container, user) {
-    showLoading(container, 'Checking Attendance Status...');
+    showLoading(container, 'Đang kiểm tra trạng thái chấm công...');
 
     try {
         const todayRes = await AttendanceService.getToday();
@@ -528,12 +528,12 @@ async function renderEmployeeDashboard(container, user) {
 
         if (todayRes && todayRes.statusCode === 200 && todayRes.data) {
             // Already checked in
-            const checkInTime = todayRes.data.gioVao ? todayRes.data.gioVao.split('T')[1].substring(0, 5) : 'Unknown';
+            const checkInTime = todayRes.data.gioVao ? todayRes.data.gioVao.split('T')[1].substring(0, 5) : 'Chưa xác định';
             attendanceHtml = `
                 <div class="card-custom bg-success text-white text-center p-5">
                     <div class="mb-3"><i class="fa-solid fa-circle-check fa-4x"></i></div>
-                    <h3>You have checked in today!</h3>
-                    <p class="fs-4">Time: <strong>${checkInTime}</strong></p>
+                    <h3>Bạn đã chấm công vào hôm nay!</h3>
+                    <p class="fs-4">Thời gian: <strong>${checkInTime}</strong></p>
                 </div>
             `;
         } else {
@@ -541,10 +541,10 @@ async function renderEmployeeDashboard(container, user) {
             attendanceHtml = `
                 <div class="card-custom text-center p-5">
                     <div class="mb-4"><i class="fa-solid fa-clock fa-4x text-primary"></i></div>
-                    <h3>Good Morning, ${user.hoTen || user.username}!</h3>
-                    <p class="text-muted mb-4">Please check in to start your work day.</p>
+                    <h3>Chào buổi sáng, ${user.hoTen || user.username}!</h3>
+                    <p class="text-muted mb-4">Vui lòng chấm công vào để bắt đầu ngày làm việc.</p>
                     <button id="btnCheckIn" class="btn btn-primary btn-lg px-5 rounded-pill">
-                        <i class="fa-solid fa-fingerprint me-2"></i> Check In Now
+                        <i class="fa-solid fa-fingerprint me-2"></i> Chấm công vào ngay
                     </button>
                 </div>
             `;
@@ -562,23 +562,23 @@ async function renderEmployeeDashboard(container, user) {
         if (btnCheckIn) {
             btnCheckIn.addEventListener('click', async () => {
                 btnCheckIn.disabled = true;
-                btnCheckIn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Processing...';
+                btnCheckIn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Đang xử lý...';
 
                 try {
                     const checkInRes = await AttendanceService.checkIn();
                     if (checkInRes && checkInRes.statusCode === 200) {
-                        showToast('Check-in successful!', 'success');
+                        showToast('Chấm công vào thành công!', 'success');
                         loadDashboard(container);
                     } else {
-                        showToast('Check-in failed: ' + (checkInRes?.message || 'Unknown error'), 'danger');
+                        showToast('Chấm công vào thất bại: ' + (checkInRes?.message || 'Lỗi không xác định'), 'danger');
                         btnCheckIn.disabled = false;
-                        btnCheckIn.innerHTML = '<i class="fa-solid fa-fingerprint me-2"></i> Check In Now';
+                        btnCheckIn.innerHTML = '<i class="fa-solid fa-fingerprint me-2"></i> Chấm công vào ngay';
                     }
                 } catch (err) {
                     console.error(err);
-                    showToast('Error checking in.', 'danger');
+                    showToast('Lỗi khi chấm công vào.', 'danger');
                     btnCheckIn.disabled = false;
-                    btnCheckIn.innerHTML = '<i class="fa-solid fa-fingerprint me-2"></i> Check In Now';
+                    btnCheckIn.innerHTML = '<i class="fa-solid fa-fingerprint me-2"></i> Chấm công vào ngay';
                 }
             });
         }
@@ -586,17 +586,17 @@ async function renderEmployeeDashboard(container, user) {
     } catch (error) {
         console.error('Dashboard Error:', error);
         if (container.lastElementChild) container.lastElementChild.remove();
-        container.innerHTML += `<div class="alert alert-danger">Error loading dashboard: ${error.message}</div>`;
+        container.innerHTML += `<div class="alert alert-danger">Lỗi khi tải bảng điều khiển: ${error.message}</div>`;
     }
 }
 
 // --- Helper: Loading Spinner ---
-function showLoading(container, message = 'Loading...') {
+function showLoading(container, message = 'Đang tải...') {
     const spinner = document.createElement('div');
     spinner.innerHTML = `
         <div class="card-custom d-flex justify-content-center align-items-center" style="height: 200px;">
             <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
+                <span class="visually-hidden">Đang tải...</span>
             </div>
             <span class="ms-2 text-muted">${message}</span>
         </div>
@@ -606,7 +606,7 @@ function showLoading(container, message = 'Loading...') {
 
 // --- Staff Management Feature ---
 async function loadStaffPage(container) {
-    showLoading(container, 'Loading Staff Data...');
+    showLoading(container, 'Đang tải dữ liệu nhân viên...');
     try {
         const response = await StaffService.getAll();
         // Remove spinner
@@ -615,12 +615,12 @@ async function loadStaffPage(container) {
         if (response && response.statusCode === 200) {
             renderStaffTable(container, response.data);
         } else {
-            container.innerHTML += `<div class="alert alert-danger">Failed to load staff data: ${response?.message || 'Unknown error'}</div>`;
+            container.innerHTML += `<div class="alert alert-danger">Không thể tải dữ liệu nhân viên: ${response?.message || 'Lỗi không xác định'}</div>`;
         }
     } catch (error) {
         console.error('Load Staff Error:', error);
         if (container.lastElementChild) container.lastElementChild.remove();
-        container.innerHTML += `<div class="alert alert-danger">Error loading data: ${error.message}</div>`;
+        container.innerHTML += `<div class="alert alert-danger">Lỗi khi tải dữ liệu: ${error.message}</div>`;
     }
 }
 
@@ -630,15 +630,15 @@ function renderStaffTable(container, staffList) {
 
     let html = `
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h5 class="card-title mb-0">Staff List</h5>
+            <h5 class="card-title mb-0">Danh sách nhân viên</h5>
             <button class="btn btn-primary btn-sm" id="btnAddStaff">
-                <i class="fa-solid fa-plus me-2"></i> Add New Staff
+                <i class="fa-solid fa-plus me-2"></i> Thêm nhân viên mới
             </button>
         </div>
     `;
 
     if (!Array.isArray(staffList) || staffList.length === 0) {
-        html += `<div class="alert alert-info">No staff members found.</div>`;
+        html += `<div class="alert alert-info">Không tìm thấy nhân viên nào.</div>`;
         wrapper.innerHTML = html;
         container.appendChild(wrapper);
         attachAddButtonListener();
@@ -686,8 +686,8 @@ function renderStaffTable(container, staffList) {
                 <td><span class="badge bg-secondary">${experience}</span></td>
                 <td class="text-muted-small" style="max-width: 200px;" title="${staff.moTaKyNang || ''}">${skills}</td>
                 <td>
-                    <button class="btn btn-light btn-sm text-primary me-1 btn-edit-staff" data-id="${staff.id}" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button>
-                    <button class="btn btn-light btn-sm text-danger btn-delete-staff" data-id="${staff.id}" title="Delete"><i class="fa-solid fa-trash"></i></button>
+                    <button class="btn btn-light btn-sm text-primary me-1 btn-edit-staff" data-id="${staff.id}" title="Sửa"><i class="fa-solid fa-pen-to-square"></i></button>
+                    <button class="btn btn-light btn-sm text-danger btn-delete-staff" data-id="${staff.id}" title="Xóa"><i class="fa-solid fa-trash"></i></button>
                 </td>
             </tr>
         `;
@@ -707,7 +707,7 @@ function renderStaffTable(container, staffList) {
     document.querySelectorAll('.btn-delete-staff').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             const id = e.currentTarget.getAttribute('data-id');
-            if (confirm(`Are you sure you want to delete staff ID ${id}?`)) {
+            if (confirm(`Bạn có chắc chắn muốn xóa nhân viên ID ${id}?`)) {
                 await deleteStaff(id);
             }
         });
@@ -725,18 +725,18 @@ function attachAddButtonListener() {
 
 // --- Department Management ---
 async function loadDepartmentPage(container) {
-    showLoading(container, 'Loading Departments...');
+    showLoading(container, 'Đang tải phòng ban...');
     try {
         const response = await DepartmentService.getAll();
         container.lastElementChild.remove();
         if (response && response.statusCode === 200) {
             renderDepartmentTable(container, response.data);
         } else {
-            container.innerHTML += `<div class="alert alert-danger">Failed to load departments: ${response?.message || 'Unknown error'}</div>`;
+            container.innerHTML += `<div class="alert alert-danger">Không thể tải phòng ban: ${response?.message || 'Lỗi không xác định'}</div>`;
         }
     } catch (error) {
         if (container.lastElementChild) container.lastElementChild.remove();
-        container.innerHTML += `<div class="alert alert-danger">Error: ${error.message}</div>`;
+        container.innerHTML += `<div class="alert alert-danger">Lỗi: ${error.message}</div>`;
     }
 }
 
@@ -746,9 +746,9 @@ function renderDepartmentTable(container, list) {
 
     let html = `
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h5 class="card-title mb-0">Departments List</h5>
+            <h5 class="card-title mb-0">Danh sách phòng ban</h5>
             <button class="btn btn-primary btn-sm" id="btnAddDepartment">
-                <i class="fa-solid fa-plus me-2"></i> Add Department
+                <i class="fa-solid fa-plus me-2"></i> Thêm phòng ban
             </button>
         </div>
         <div class="table-responsive">
@@ -772,10 +772,10 @@ function renderDepartmentTable(container, list) {
                 <td class="text-muted">${item.moTa || ''}</td>
                 <td>
                     <button class="btn btn-light btn-sm text-primary me-1 btn-edit-dept" data-id="${item.id}" 
-                        data-name="${item.tenPhongBan}" data-desc="${item.moTa || ''}" title="Edit">
+                        data-name="${item.tenPhongBan}" data-desc="${item.moTa || ''}" title="Sửa">
                         <i class="fa-solid fa-pen-to-square"></i>
                     </button>
-                    <button class="btn btn-light btn-sm text-danger btn-delete-dept" data-id="${item.id}" title="Delete">
+                    <button class="btn btn-light btn-sm text-danger btn-delete-dept" data-id="${item.id}" title="Xóa">
                         <i class="fa-solid fa-trash"></i>
                     </button>
                 </td>
@@ -817,13 +817,13 @@ function openDepartmentModal(dept = null) {
     const form = document.getElementById('departmentForm');
     form.reset();
     document.getElementById('departmentId').value = '';
-    document.getElementById('departmentModalLabel').textContent = 'Add New Department';
+    document.getElementById('departmentModalLabel').textContent = 'Thêm phòng ban mới';
 
     if (dept) {
         document.getElementById('departmentId').value = dept.id;
         document.getElementById('deptName').value = dept.tenPhongBan;
         document.getElementById('deptDescription').value = dept.moTa;
-        document.getElementById('departmentModalLabel').textContent = 'Edit Department';
+        document.getElementById('departmentModalLabel').textContent = 'Sửa phòng ban';
     }
 
     departmentModal.show();
@@ -837,13 +837,13 @@ async function handleSaveDepartment() {
     };
 
     if (!data.tenPhongBan) {
-        showToast('Department Name is required', 'warning');
+        showToast('Tên phòng ban là bắt buộc', 'warning');
         return;
     }
 
     const btn = document.getElementById('btnSaveDepartment');
     btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang lưu...';
 
     try {
         let response;
@@ -855,52 +855,52 @@ async function handleSaveDepartment() {
         }
 
         if (response && response.statusCode === 200) {
-            showToast(id ? 'Department updated' : 'Department added', 'success');
+            showToast(id ? 'Cập nhật phòng ban thành công' : 'Thêm phòng ban thành công', 'success');
             departmentModal.hide();
             loadPage('department');
         } else {
-            showToast('Failed: ' + (response?.message || 'Unknown error'), 'danger');
+            showToast('Thất bại: ' + (response?.message || 'Lỗi không xác định'), 'danger');
         }
     } catch (error) {
         console.error(error);
-        showToast('Error saving department', 'danger');
+        showToast('Lỗi khi lưu phòng ban', 'danger');
     } finally {
         btn.disabled = false;
-        btn.textContent = 'Save';
+        btn.textContent = 'Lưu';
     }
 }
 
 async function deleteDepartment(id) {
-    if (!confirm('Are you sure you want to delete this department?')) return;
+    if (!confirm('Bạn có chắc chắn muốn xóa phòng ban này?')) return;
 
     try {
         const response = await DepartmentService.delete(id);
         if (response && response.statusCode === 200) {
-            showToast('Department deleted', 'success');
+            showToast('Xóa phòng ban thành công', 'success');
             loadPage('department');
         } else {
-            showToast('Failed to delete: ' + (response?.message || 'Unknown error'), 'danger');
+            showToast('Xóa thất bại: ' + (response?.message || 'Lỗi không xác định'), 'danger');
         }
     } catch (error) {
         console.error(error);
-        showToast('Error deleting department', 'danger');
+        showToast('Lỗi khi xóa phòng ban', 'danger');
     }
 }
 
 // --- Leave Requests ---
 async function loadLeavePage(container) {
-    showLoading(container, 'Loading Leave Requests...');
+    showLoading(container, 'Đang tải đơn nghỉ phép...');
     try {
         const response = await LeaveService.getAll();
         container.lastElementChild.remove();
         if (response && response.statusCode === 200) {
             renderLeaveTable(container, response.data);
         } else {
-            container.innerHTML += `<div class="alert alert-danger">Failed to load leave requests: ${response?.message || 'Unknown error'}</div>`;
+            container.innerHTML += `<div class="alert alert-danger">Không thể tải đơn nghỉ phép: ${response?.message || 'Lỗi không xác định'}</div>`;
         }
     } catch (error) {
         if (container.lastElementChild) container.lastElementChild.remove();
-        container.innerHTML += `<div class="alert alert-danger">Error: ${error.message}</div>`;
+        container.innerHTML += `<div class="alert alert-danger">Lỗi: ${error.message}</div>`;
     }
 }
 
@@ -912,9 +912,9 @@ function renderLeaveTable(container, list) {
 
     let html = `
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h5 class="card-title mb-0">Leave Requests</h5>
+            <h5 class="card-title mb-0">Đơn nghỉ phép</h5>
             <button class="btn btn-primary btn-sm" id="btnAddLeave">
-                <i class="fa-solid fa-plus me-2"></i> New Request
+                <i class="fa-solid fa-plus me-2"></i> Đơn mới
             </button>
         </div>
         <div class="table-responsive">
@@ -949,8 +949,8 @@ function renderLeaveTable(container, list) {
 
             // Admin Actions: Save Button
             actions = `
-                <button class="btn btn-primary btn-sm btn-save-leave-status" data-id="${item.id}" title="Save Status">
-                    <i class="fa-solid fa-save"></i> Save
+                <button class="btn btn-primary btn-sm btn-save-leave-status" data-id="${item.id}" title="Lưu trạng thái">
+                    <i class="fa-solid fa-save"></i> Lưu
                 </button>
             `;
         } else {
@@ -966,10 +966,10 @@ function renderLeaveTable(container, list) {
             if (item.trangThai === 'Chờ duyệt') {
                 actions = `
                     <button class="btn btn-light btn-sm text-primary me-1 btn-edit-leave" data-id="${item.id}" 
-                        data-start="${item.ngayBatDau}" data-end="${item.ngayKetThuc}" data-reason="${item.lyDo}" title="Edit">
+                        data-start="${item.ngayBatDau}" data-end="${item.ngayKetThuc}" data-reason="${item.lyDo}" title="Sửa">
                         <i class="fa-solid fa-pen-to-square"></i>
                     </button>
-                    <button class="btn btn-light btn-sm text-danger me-1 btn-delete-leave" data-id="${item.id}" title="Delete">
+                    <button class="btn btn-light btn-sm text-danger me-1 btn-delete-leave" data-id="${item.id}" title="Xóa">
                         <i class="fa-solid fa-trash"></i>
                     </button>
                 `;
@@ -1040,14 +1040,14 @@ function openLeaveModal(req = null) {
     const form = document.getElementById('leaveForm');
     form.reset();
     document.getElementById('leaveId').value = '';
-    document.getElementById('leaveModalLabel').textContent = 'New Leave Request';
+    document.getElementById('leaveModalLabel').textContent = 'Đơn nghỉ phép mới';
 
     if (req) {
         document.getElementById('leaveId').value = req.id;
         document.getElementById('leaveStartDate').value = req.ngayBatDau.split('T')[0];
         document.getElementById('leaveEndDate').value = req.ngayKetThuc.split('T')[0];
         document.getElementById('leaveReason').value = req.lyDo;
-        document.getElementById('leaveModalLabel').textContent = 'Edit Leave Request';
+        document.getElementById('leaveModalLabel').textContent = 'Sửa đơn nghỉ phép';
     }
 
     leaveModal.show();
@@ -1062,13 +1062,13 @@ async function handleSaveLeaveRequest() {
     };
 
     if (!data.ngayBatDau || !data.ngayKetThuc || !data.lyDo) {
-        showToast('Please fill all fields', 'warning');
+        showToast('Vui lòng điền đầy đủ các trường', 'warning');
         return;
     }
 
     const btn = document.getElementById('btnSaveLeave');
     btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending...';
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang gửi...';
 
     try {
         let response;
@@ -1080,40 +1080,40 @@ async function handleSaveLeaveRequest() {
         }
 
         if (response && response.statusCode === 200) {
-            showToast(id ? 'Request updated' : 'Request sent', 'success');
+            showToast(id ? 'Cập nhật đơn thành công' : 'Gửi đơn thành công', 'success');
             leaveModal.hide();
             loadPage('leave');
         } else {
-            showToast('Failed: ' + (response?.message || 'Unknown error'), 'danger');
+            showToast('Thất bại: ' + (response?.message || 'Lỗi không xác định'), 'danger');
         }
     } catch (error) {
         console.error(error);
-        showToast('Error saving request', 'danger');
+        showToast('Lỗi khi lưu đơn', 'danger');
     } finally {
         btn.disabled = false;
-        btn.textContent = 'Submit Request';
+        btn.textContent = 'Gửi đơn';
     }
 }
 
 async function deleteLeaveRequest(id) {
-    if (!confirm('Are you sure you want to delete this request?')) return;
+    if (!confirm('Bạn có chắc chắn muốn xóa đơn này?')) return;
 
     try {
         const response = await LeaveService.delete(id);
         if (response && response.statusCode === 200) {
-            showToast('Request deleted', 'success');
+            showToast('Xóa đơn thành công', 'success');
             loadPage('leave');
         } else {
-            showToast('Failed to delete: ' + (response?.message || 'Unknown error'), 'danger');
+            showToast('Xóa thất bại: ' + (response?.message || 'Lỗi không xác định'), 'danger');
         }
     } catch (error) {
         console.error(error);
-        showToast('Error deleting request', 'danger');
+        showToast('Lỗi khi xóa đơn', 'danger');
     }
 }
 
 async function approveRejectLeave(id, status) {
-    if (!confirm(`Are you sure you want to set status to ${status}?`)) return;
+    if (!confirm(`Bạn có chắc chắn muốn đặt trạng thái thành ${status}?`)) return;
 
     try {
         // Map frontend status string to backend boolean
@@ -1129,20 +1129,20 @@ async function approveRejectLeave(id, status) {
         const response = await LeaveService.approveReject(payload);
 
         if (response && response.statusCode === 200) {
-            showToast(`Request ${status}`, 'success');
+            showToast(`Đơn ${status}`, 'success');
             loadPage('leave');
         } else {
-            showToast('Failed: ' + (response?.message || 'Unknown error'), 'danger');
+            showToast('Thất bại: ' + (response?.message || 'Lỗi không xác định'), 'danger');
         }
     } catch (error) {
         console.error(error);
-        showToast('Error processing request', 'danger');
+        showToast('Lỗi khi xử lý đơn', 'danger');
     }
 }
 
 // --- Salary ---
 async function loadSalaryPage(container) {
-    showLoading(container, 'Loading Salary Info...');
+    showLoading(container, 'Đang tải thông tin lương...');
     try {
         const response = await SalaryService.getAllSalary();
         container.lastElementChild.remove();
@@ -1150,21 +1150,21 @@ async function loadSalaryPage(container) {
             renderSalaryExportControls(container);
             renderSalaryTable(container, response.data);
         } else {
-            container.innerHTML += `<div class="alert alert-danger">Failed to load salary: ${response?.message || 'Unknown error'}</div>`;
+            container.innerHTML += `<div class="alert alert-danger">Không thể tải thông tin lương: ${response?.message || 'Lỗi không xác định'}</div>`;
         }
     } catch (error) {
         if (container.lastElementChild) container.lastElementChild.remove();
-        container.innerHTML += `<div class="alert alert-danger">Error: ${error.message}</div>`;
+        container.innerHTML += `<div class="alert alert-danger">Lỗi: ${error.message}</div>`;
     }
 }
 
 function renderSalaryTable(container, list) {
     const wrapper = document.createElement('div');
     wrapper.className = 'card-custom';
-    let html = `<h5 class="card-title mb-4">All Salary Records</h5><div class="table-responsive"><table class="table table-hover"><thead><tr><th>Employee</th><th>Month/Year</th><th>Base Salary</th><th>Work Days</th><th>Bonus</th><th>Allowance</th><th>Deduction</th><th>Total</th></tr></thead><tbody>`;
+    let html = `<h5 class="card-title mb-4">Tất cả bản ghi lương</h5><div class="table-responsive"><table class="table table-hover"><thead><tr><th>Nhân viên</th><th>Tháng/Năm</th><th>Lương cơ bản</th><th>Ngày công</th><th>Thưởng</th><th>Phụ cấp</th><th>Khấu trừ</th><th>Tổng</th></tr></thead><tbody>`;
 
     if (list.length === 0) {
-        html += `<tr><td colspan="8" class="text-center">No salary records found.</td></tr>`;
+        html += `<tr><td colspan="8" class="text-center">Không tìm thấy bản ghi lương nào.</td></tr>`;
     } else {
         list.forEach(item => {
             html += `<tr>
@@ -1245,7 +1245,7 @@ function renderSalaryExportControls(container) {
                 showToast('Xuất Excel thất bại', 'danger');
             } finally {
                 btnExportExcel.disabled = false;
-                btnExportExcel.innerHTML = '<i class="fa-solid fa-file-excel me-1"></i> Export Excel';
+                btnExportExcel.innerHTML = '<i class="fa-solid fa-file-excel me-1"></i> Xuất Excel';
             }
         });
     }
@@ -1307,7 +1307,7 @@ function renderSalaryExportControls(container) {
                 showToast(err.message || 'Import thất bại', 'danger');
             } finally {
                 btnImportExcel.disabled = false;
-                btnImportExcel.innerHTML = '<i class="fa-solid fa-file-import me-1"></i> Import Excel';
+                btnImportExcel.innerHTML = '<i class="fa-solid fa-file-import me-1"></i> Nhập Excel';
             }
         });
     }
@@ -1324,18 +1324,18 @@ function downloadBlob(blob, fileName) {
 
 // --- Tasks ---
 async function loadTaskPage(container) {
-    showLoading(container, 'Loading Tasks...');
+    showLoading(container, 'Đang tải công việc...');
     try {
         const response = await TaskService.getAllTasks();
         container.lastElementChild.remove();
         if (response && response.statusCode === 200) {
             renderTaskTable(container, response.data);
         } else {
-            container.innerHTML += `<div class="alert alert-danger">Failed to load tasks: ${response?.message || 'Unknown error'}</div>`;
+            container.innerHTML += `<div class="alert alert-danger">Không thể tải công việc: ${response?.message || 'Lỗi không xác định'}</div>`;
         }
     } catch (error) {
         if (container.lastElementChild) container.lastElementChild.remove();
-        container.innerHTML += `<div class="alert alert-danger">Error: ${error.message}</div>`;
+        container.innerHTML += `<div class="alert alert-danger">Lỗi: ${error.message}</div>`;
     }
 }
 
@@ -1344,15 +1344,15 @@ function renderTaskTable(container, list) {
     wrapper.className = 'card-custom';
     let html = `
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h5 class="card-title mb-0">All Tasks</h5>
+            <h5 class="card-title mb-0">Tất cả công việc</h5>
             <button class="btn btn-primary btn-sm" id="btnAssignTask">
-                <i class="fa-solid fa-plus me-2"></i> Assign Task
+                <i class="fa-solid fa-plus me-2"></i> Giao việc
             </button>
         </div>
-        <div class="table-responsive"><table class="table table-hover"><thead><tr><th>Title</th><th>Description</th><th>Start Date</th><th>Deadline</th><th>Status</th><th>Assigner</th><th>Assignee</th></tr></thead><tbody>`;
+        <div class="table-responsive"><table class="table table-hover"><thead><tr><th>Tiêu đề</th><th>Mô tả</th><th>Ngày bắt đầu</th><th>Hạn hoàn thành</th><th>Trạng thái</th><th>Người giao</th><th>Người nhận</th></tr></thead><tbody>`;
 
     if (list.length === 0) {
-        html += `<tr><td colspan="7" class="text-center">No tasks found.</td></tr>`;
+        html += `<tr><td colspan="7" class="text-center">Không tìm thấy công việc nào.</td></tr>`;
     } else {
         list.forEach(item => {
             let badgeClass = 'bg-secondary';
@@ -1471,18 +1471,18 @@ async function handleSaveTask() {
 
 // --- Overtime Management (Admin) ---
 async function loadOvertimeAdminPage(container) {
-    showLoading(container, 'Loading overtime data...');
+    showLoading(container, 'Đang tải dữ liệu tăng ca...');
     try {
         const response = await OvertimeService.getAllOt();
         if (container.lastElementChild) container.lastElementChild.remove();
         if (response && response.statusCode === 200) {
             renderOvertimeAdminTable(container, response.data || []);
         } else {
-            container.innerHTML += `<div class="alert alert-danger">Failed to load overtime: ${response?.message || 'Unknown error'}</div>`;
+            container.innerHTML += `<div class="alert alert-danger">Không thể tải dữ liệu tăng ca: ${response?.message || 'Lỗi không xác định'}</div>`;
         }
     } catch (error) {
         if (container.lastElementChild) container.lastElementChild.remove();
-        container.innerHTML += `<div class="alert alert-danger">Error: ${error.message}</div>`;
+        container.innerHTML += `<div class="alert alert-danger">Lỗi: ${error.message}</div>`;
     }
 }
 
@@ -1601,26 +1601,26 @@ function renderOvertimeAdminTable(container, list) {
 
     let html = `
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h5 class="card-title mb-0">Today Overtime Requests</h5>
+            <h5 class="card-title mb-0">Đơn tăng ca hôm nay</h5>
         </div>
         <div class="table-responsive">
             <table class="table table-hover align-middle">
                 <thead>
                     <tr>
-                        <th>Employee</th>
-                        <th>Date</th>
-                        <th>Start</th>
-                        <th>End</th>
-                        <th>Hours</th>
-                        <th>Coefficient</th>
-                        <th>Reason</th>
-                        <th>Status</th>
+                        <th>Nhân viên</th>
+                        <th>Ngày</th>
+                        <th>Bắt đầu</th>
+                        <th>Kết thúc</th>
+                        <th>Số giờ</th>
+                        <th>Hệ số</th>
+                        <th>Lý do</th>
+                        <th>Trạng thái</th>
                     </tr>
                 </thead>
                 <tbody>`;
 
     if (!list || list.length === 0) {
-        html += `<tr><td colspan="8" class="text-center">No overtime requests for today.</td></tr>`;
+        html += `<tr><td colspan="8" class="text-center">Không có đơn tăng ca nào hôm nay.</td></tr>`;
     } else {
         list.forEach(item => {
             let badgeClass = 'bg-secondary';
@@ -1750,7 +1750,7 @@ const staffModal = new bootstrap.Modal(document.getElementById('staffModal'));
 function openAddModal() {
     document.getElementById('staffForm').reset();
     document.getElementById('staffId').value = '';
-    document.getElementById('staffModalLabel').textContent = 'Add New Staff';
+    document.getElementById('staffModalLabel').textContent = 'Thêm nhân viên mới';
     staffModal.show();
 }
 
@@ -1772,14 +1772,14 @@ async function openEditModal(id) {
             document.getElementById('position').value = staff.chucVu || '';
             document.getElementById('salary').value = staff.luongCoBan || '';
 
-            document.getElementById('staffModalLabel').textContent = 'Edit Staff';
+            document.getElementById('staffModalLabel').textContent = 'Sửa nhân viên';
             staffModal.show();
         } else {
-            alert('Failed to load staff details: ' + (response?.message || 'Unknown error'));
+            alert('Không thể tải thông tin nhân viên: ' + (response?.message || 'Lỗi không xác định'));
         }
     } catch (error) {
         console.error('Get Staff Error:', error);
-        alert('Error loading staff details');
+        alert('Lỗi khi tải thông tin nhân viên');
     }
 }
 
@@ -1798,7 +1798,7 @@ async function handleSaveStaff() {
     };
 
     if (!data.hoTen) {
-        alert('Full Name is required');
+        alert('Họ và tên là bắt buộc');
         return;
     }
 
@@ -1814,15 +1814,15 @@ async function handleSaveStaff() {
         }
 
         if (response && response.statusCode === 200) {
-            alert(id ? 'Staff updated successfully' : 'Staff added successfully');
+            alert(id ? 'Cập nhật nhân viên thành công' : 'Thêm nhân viên thành công');
             staffModal.hide();
             loadPage('staff'); // Reload table
         } else {
-            alert('Failed to save: ' + (response?.message || 'Unknown error'));
+            alert('Lưu thất bại: ' + (response?.message || 'Lỗi không xác định'));
         }
     } catch (error) {
         console.error('Save Staff Error:', error);
-        alert('Error saving staff');
+        alert('Lỗi khi lưu nhân viên');
     }
 }
 
@@ -1830,14 +1830,14 @@ async function deleteStaff(id) {
     try {
         const response = await StaffService.delete(id);
         if (response && response.statusCode === 200) {
-            alert('Staff deleted successfully');
+            alert('Xóa nhân viên thành công');
             loadPage('staff');
         } else {
-            alert(`Failed to delete: ${response?.message || 'Unknown error'}`);
+            alert(`Xóa thất bại: ${response?.message || 'Lỗi không xác định'}`);
         }
     } catch (error) {
         console.error('Delete Staff Error:', error);
-        alert(`Error deleting staff: ${error.message}`);
+        alert(`Lỗi khi xóa nhân viên: ${error.message}`);
     }
 }
 
@@ -1883,7 +1883,7 @@ function renderCvKanbanBoard(container, list) {
     const columns = [
         { status: 0, title: 'Mới', color: '#3b82f6', icon: 'fa-inbox' },
         { status: 1, title: 'Phỏng vấn', color: '#f59e0b', icon: 'fa-comments' },
-        { status: 2, title: 'Offer', color: '#10b981', icon: 'fa-handshake' }
+        { status: 2, title: 'Đề xuất', color: '#10b981', icon: 'fa-handshake' }
     ];
     
     let html = `
