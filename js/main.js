@@ -9,7 +9,7 @@ import DashboardService from './services/dashboardService.js';
 import OvertimeService from './services/overtimeService.js';
 import ProjectService from './services/projectService.js';
 import UngVienService from './services/ungVienService.js';
-import { formatMoney, showToast, initDarkMode } from './utils.js';
+import { formatMoney, formatMoneyInput, parseMoneyInput, showToast, initDarkMode } from './utils.js';
 
 // --- Global State & Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
@@ -1486,6 +1486,31 @@ async function loadOvertimeAdminPage(container) {
     }
 }
 
+async function approveRejectOvertime(id, status) {
+    // 和请假申请逻辑一致：显示确认对话框
+    const statusText = status === 'Duyệt' || status === 'Đã duyệt' ? 'Duyệt' : status === 'Từ chối' ? 'Từ chối' : status;
+    if (!confirm(`Bạn có chắc chắn muốn đặt trạng thái thành ${statusText}?`)) return;
+
+    try {
+        // 调用 API 更新状态
+        const response = await OvertimeService.updateStatus(parseInt(id), status);
+
+        if (response && response.statusCode === 200) {
+            showToast(`Đơn ${statusText}`, 'success');
+            // 重新加载数据
+            const contentArea = document.getElementById('content-area');
+            if (contentArea) {
+                loadOvertimeAdminPage(contentArea);
+            }
+        } else {
+            showToast('Thất bại: ' + (response?.message || 'Lỗi không xác định'), 'danger');
+        }
+    } catch (error) {
+        console.error('Approve/Reject Overtime Error:', error);
+        showToast('Lỗi khi xử lý đơn', 'danger');
+    }
+}
+
 // --- Project Management ---
 async function loadProjectPage(container) {
     showLoading(container, 'Đang tải danh sách dự án...');
@@ -1615,21 +1640,36 @@ function renderOvertimeAdminTable(container, list) {
                         <th>Hệ số</th>
                         <th>Lý do</th>
                         <th>Trạng thái</th>
+                        <th>Thao tác</th>
                     </tr>
                 </thead>
                 <tbody>`;
 
     if (!list || list.length === 0) {
-        html += `<tr><td colspan="8" class="text-center">Không có đơn tăng ca nào hôm nay.</td></tr>`;
+        html += `<tr><td colspan="9" class="text-center">Không có đơn tăng ca nào hôm nay.</td></tr>`;
     } else {
         list.forEach(item => {
-            let badgeClass = 'bg-secondary';
-            if (item.trangThai === 'Chờ duyệt') badgeClass = 'bg-warning text-dark';
-            if (item.trangThai === 'Duyệt' || item.trangThai === 'Đã duyệt') badgeClass = 'bg-success';
-            if (item.trangThai === 'Từ chối') badgeClass = 'bg-danger';
+            const currentStatus = item.trangThai || 'Chờ duyệt';
+            
+            // 状态下拉框 - 和请假申请逻辑一致：Chờ duyệt（禁用），只能选择 Duyệt/Đã duyệt 或 Từ chối
+            let statusHtml = `
+                <select class="form-select form-select-sm status-select" data-id="${item.id}" style="width: 130px;">
+                    <option value="Chờ duyệt" disabled ${currentStatus === 'Chờ duyệt' ? 'selected' : ''}>Chờ duyệt</option>
+                    <option value="Duyệt" ${currentStatus === 'Duyệt' ? 'selected' : ''}>Duyệt</option>
+                    <option value="Đã duyệt" ${currentStatus === 'Đã duyệt' ? 'selected' : ''}>Đã duyệt</option>
+                    <option value="Từ chối" ${currentStatus === 'Từ chối' ? 'selected' : ''}>Từ chối</option>
+                </select>
+            `;
 
+            // 操作按钮 - 和请假申请的"Lưu"按钮样式一致
+            let actions = `
+                <button class="btn btn-primary btn-sm btn-save-overtime-status" data-id="${item.id}" title="Lưu trạng thái">
+                    <i class="fa-solid fa-save"></i> Lưu
+                </button>
+            `;
+            
             html += `
-                <tr>
+                <tr data-id="${item.id}">
                     <td class="fw-medium">${item.tenNhanVien || '-'}</td>
                     <td>${item.ngayTangCa || '-'}</td>
                     <td>${item.gioBatDau || '-'}</td>
@@ -1637,7 +1677,8 @@ function renderOvertimeAdminTable(container, list) {
                     <td>${item.soGioLam || '-'}</td>
                     <td>${item.heSo || '-'}</td>
                     <td>${item.lyDoTangCa || '-'}</td>
-                    <td><span class="badge ${badgeClass}">${item.trangThai || '-'}</span></td>
+                    <td>${statusHtml}</td>
+                    <td>${actions}</td>
                 </tr>`;
         });
     }
@@ -1645,6 +1686,25 @@ function renderOvertimeAdminTable(container, list) {
     html += `</tbody></table></div>`;
     wrapper.innerHTML = html;
     container.appendChild(wrapper);
+
+    // 绑定保存状态按钮事件 - 和请假申请逻辑一致
+    wrapper.querySelectorAll('.btn-save-overtime-status').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const id = e.currentTarget.dataset.id;
+            // 找到对应行的 select 元素
+            const row = e.currentTarget.closest('tr');
+            const select = row.querySelector('.status-select');
+            if (select) {
+                const newStatus = select.value;
+                // 验证状态不能是空值或"Chờ duyệt"
+                if (!newStatus || newStatus === 'Chờ duyệt') {
+                    showToast('Vui lòng chọn trạng thái hợp lệ', 'warning');
+                    return;
+                }
+                approveRejectOvertime(id, newStatus);
+            }
+        });
+    });
 }
 
 // --- Project CRUD Logic ---
@@ -1747,10 +1807,54 @@ async function deleteProject(id) {
 // --- Modal & CRUD Logic (Staff) ---
 const staffModal = new bootstrap.Modal(document.getElementById('staffModal'));
 
+let salaryInputHandler = null;
+
+function setupSalaryInputFormatting() {
+    const salaryInput = document.getElementById('salary');
+    if (!salaryInput) return;
+    
+    if (salaryInputHandler) {
+        salaryInput.removeEventListener('input', salaryInputHandler);
+    }
+    
+    // 创建新的事件处理函数
+    salaryInputHandler = (e) => {
+        const cursorPosition = e.target.selectionStart;
+        const oldValue = e.target.value;
+        const numericValue = parseMoneyInput(oldValue);
+        
+        if (numericValue) {
+            const formatted = formatMoneyInput(numericValue);
+            e.target.value = formatted;
+            
+            // 恢复光标位置（考虑格式化后的字符增加）
+            const lengthDiff = formatted.length - oldValue.length;
+            const newPosition = Math.min(cursorPosition + lengthDiff, formatted.length);
+            e.target.setSelectionRange(newPosition, newPosition);
+        } else {
+            e.target.value = '';
+        }
+    };
+    
+    // 添加输入事件监听器
+    salaryInput.addEventListener('input', salaryInputHandler);
+    
+    // 添加焦点事件：当失去焦点时，如果没有值则清空
+    salaryInput.addEventListener('blur', (e) => {
+        const numericValue = parseMoneyInput(e.target.value);
+        if (numericValue) {
+            e.target.value = formatMoneyInput(numericValue);
+        } else {
+            e.target.value = '';
+        }
+    });
+}
+
 function openAddModal() {
     document.getElementById('staffForm').reset();
     document.getElementById('staffId').value = '';
     document.getElementById('staffModalLabel').textContent = 'Thêm nhân viên mới';
+    setupSalaryInputFormatting();
     staffModal.show();
 }
 
@@ -1770,9 +1874,15 @@ async function openEditModal(id) {
             document.getElementById('address').value = staff.diaChi || '';
             document.getElementById('departmentId').value = staff.idPhongBan || '';
             document.getElementById('position').value = staff.chucVu || '';
-            document.getElementById('salary').value = staff.luongCoBan || '';
+            // 格式化显示工资
+            if (staff.luongCoBan) {
+                document.getElementById('salary').value = formatMoneyInput(staff.luongCoBan.toString());
+            } else {
+                document.getElementById('salary').value = '';
+            }
 
             document.getElementById('staffModalLabel').textContent = 'Sửa nhân viên';
+            setupSalaryInputFormatting();
             staffModal.show();
         } else {
             alert('Không thể tải thông tin nhân viên: ' + (response?.message || 'Lỗi không xác định'));
@@ -1794,7 +1904,13 @@ async function handleSaveStaff() {
         diaChi: document.getElementById('address').value,
         idPhongBan: document.getElementById('departmentId').value ? parseInt(document.getElementById('departmentId').value) : null,
         chucVu: document.getElementById('position').value,
-        luongCoBan: document.getElementById('salary').value ? parseFloat(document.getElementById('salary').value) : null
+        luongCoBan: (() => {
+            const salaryValue = document.getElementById('salary').value;
+            if (!salaryValue) return null;
+            // 从格式化字符串中提取纯数字
+            const numericValue = parseMoneyInput(salaryValue);
+            return numericValue ? parseFloat(numericValue) : null;
+        })()
     };
 
     if (!data.hoTen) {
