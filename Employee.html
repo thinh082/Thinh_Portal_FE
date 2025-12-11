@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Employee Portal - HR Portal</title>
+    <title>Portal nhân viên - HR Portal</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome -->
@@ -24,28 +24,28 @@
             <div class="list-group list-group-flush">
                 <a href="#" class="list-group-item list-group-item-action list-group-item-light p-3 active"
                     data-page="profile">
-                    <i class="fa-solid fa-user me-2"></i>My Profile
+                    <i class="fa-solid fa-user me-2"></i>Hồ sơ của tôi
                 </a>
                 <a href="#" class="list-group-item list-group-item-action list-group-item-light p-3" data-page="salary">
-                    <i class="fa-solid fa-money-bill-wave me-2"></i>My Salary
+                    <i class="fa-solid fa-money-bill-wave me-2"></i>Lương của tôi
                 </a>
                 <a href="#" class="list-group-item list-group-item-action list-group-item-light p-3"
                     data-page="overtime">
-                    <i class="fa-solid fa-clock me-2"></i>Overtime Registration
+                    <i class="fa-solid fa-clock me-2"></i>Đăng ký tăng ca
                 </a>
                 <a href="#" class="list-group-item list-group-item-action list-group-item-light p-3"
                     data-action="checkin" id="nav-checkin">
-                    <i class="fa-solid fa-fingerprint me-2"></i>Check In
+                    <i class="fa-solid fa-fingerprint me-2"></i>Chấm công vào
                 </a>
                 <a href="#" class="list-group-item list-group-item-action list-group-item-light p-3"
                     data-action="checkout" id="nav-checkout">
-                    <i class="fa-solid fa-arrow-right-from-bracket me-2"></i>Check Out
+                    <i class="fa-solid fa-arrow-right-from-bracket me-2"></i>Chấm công ra
                 </a>
                 <a href="#" class="list-group-item list-group-item-action list-group-item-light p-3" data-page="leave">
-                    <i class="fa-solid fa-calendar-days me-2"></i>Leave Requests
+                    <i class="fa-solid fa-calendar-days me-2"></i>Đơn nghỉ phép
                 </a>
                 <a href="#" class="list-group-item list-group-item-action list-group-item-light p-3" data-page="tasks">
-                    <i class="fa-solid fa-list-check me-2"></i>My Tasks
+                    <i class="fa-solid fa-list-check me-2"></i>Công việc của tôi
                 </a>
             </div>
         </div>
@@ -81,11 +81,11 @@
                                         style="width: 32px; height: 32px;">
                                         <i class="fa-solid fa-user"></i>
                                     </div>
-                                    <span id="userInfo" class="fw-medium">User</span>
+                                    <span id="userInfo" class="fw-medium">Người dùng</span>
                                 </a>
                                 <div class="dropdown-menu dropdown-menu-end shadow border-0"
                                     aria-labelledby="navbarDropdown">
-                                    <a class="dropdown-item text-danger" href="#" id="logoutBtn">Logout</a>
+                                    <a class="dropdown-item text-danger" href="#" id="logoutBtn">Đăng xuất</a>
                                 </div>
                             </li>
                         </ul>
@@ -107,13 +107,13 @@
                                     src="https://ui-avatars.com/api/?name=User&background=0d6efd&color=fff&size=128"
                                     class="rounded-circle shadow-sm" alt="Profile Avatar" width="128" height="128">
                             </div>
-                            <h4 id="profileName" class="fw-bold mb-1">User Name</h4>
-                            <p id="profileRole" class="text-muted mb-4">Role</p>
+                            <h4 id="profileName" class="fw-bold mb-1">Tên người dùng</h4>
+                            <p id="profileRole" class="text-muted mb-4">Vai trò</p>
 
                             <div class="d-grid gap-2">
                                 <button class="btn btn-outline-primary" data-bs-toggle="modal"
                                     data-bs-target="#changePasswordModal">
-                                    <i class="fa-solid fa-key me-2"></i> Change Password
+                                    <i class="fa-solid fa-key me-2"></i> Đổi mật khẩu
                                 </button>
                             </div>
                         </div>
@@ -122,46 +122,46 @@
                     <!-- Right Column: General Information -->
                     <div class="col-md-8 mb-4">
                         <div class="card-custom h-100">
-                            <h5 class="card-title mb-4 border-bottom pb-2">General Information</h5>
+                            <h5 class="card-title mb-4 border-bottom pb-2">Thông tin chung</h5>
                             <form id="profileForm">
                                 <div class="row mb-3">
                                     <div class="col-md-6">
-                                        <label class="form-label text-muted small">Staff ID</label>
+                                        <label class="form-label text-muted small">Mã nhân viên</label>
                                         <input type="text" class="form-control bg-light" id="profileId" readonly>
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label text-muted small">Join Date</label>
+                                        <label class="form-label text-muted small">Ngày vào làm</label>
                                         <input type="text" class="form-control bg-light" id="profileJoinDate" readonly>
                                     </div>
                                 </div>
                                 <div class="row mb-3">
                                     <div class="col-md-6">
-                                        <label class="form-label text-muted small">Department</label>
+                                        <label class="form-label text-muted small">Phòng ban</label>
                                         <input type="text" class="form-control bg-light" id="profileDept" readonly>
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label text-muted small">Position</label>
+                                        <label class="form-label text-muted small">Chức vụ</label>
                                         <input type="text" class="form-control bg-light" id="profilePosition" readonly>
                                     </div>
                                 </div>
 
-                                <h6 class="mt-4 mb-3 text-primary">Contact Details</h6>
+                                <h6 class="mt-4 mb-3 text-primary">Thông tin liên hệ</h6>
                                 <div class="row mb-3">
                                     <div class="col-md-6">
-                                        <label class="form-label">Email Address</label>
+                                        <label class="form-label">Địa chỉ email</label>
                                         <input type="email" class="form-control" id="profileEmail">
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label">Phone Number</label>
+                                        <label class="form-label">Số điện thoại</label>
                                         <input type="tel" class="form-control" id="profilePhone">
                                     </div>
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label">Address</label>
+                                    <label class="form-label">Địa chỉ</label>
                                     <input type="text" class="form-control" id="profileAddress">
                                 </div>
                                 <div class="mb-4">
-                                    <label class="form-label">Date of Birth</label>
+                                    <label class="form-label">Ngày sinh</label>
                                     <input type="date" class="form-control" id="profileDob">
                                 </div>
 
@@ -179,7 +179,7 @@
 
                                 <div class="d-flex justify-content-end">
                                     <button type="button" id="btnSaveProfile" class="btn btn-primary px-4">
-                                        <i class="fa-solid fa-save me-2"></i> Save Changes
+                                        <i class="fa-solid fa-save me-2"></i> Lưu thay đổi
                                     </button>
                                 </div>
                             </form>
@@ -197,9 +197,9 @@
             <div id="overtime-section" class="container-fluid px-4 mt-4" style="display: none;">
                 <div class="card-custom">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="card-title mb-0">My Overtime Requests</h5>
+                        <h5 class="card-title mb-0">Đơn tăng ca của tôi</h5>
                         <button type="button" class="btn btn-primary btn-sm" id="btnShowOvertimeForm">
-                            <i class="fa-solid fa-plus me-2"></i>Request Overtime
+                            <i class="fa-solid fa-plus me-2"></i>Đăng ký tăng ca
                         </button>
                     </div>
 
@@ -208,35 +208,35 @@
                     </div>
 
                     <form id="overtimeForm" style="display: none;">
-                        <h6 class="mb-3 border-top pt-3">New Overtime Request</h6>
+                        <h6 class="mb-3 border-top pt-3">Đơn tăng ca mới</h6>
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label class="form-label">Start Time</label>
+                                <label class="form-label">Giờ bắt đầu</label>
                                 <input type="time" class="form-control" id="otStartTime" required>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">End Time</label>
+                                <label class="form-label">Giờ kết thúc</label>
                                 <input type="time" class="form-control" id="otEndTime" required>
                             </div>
                         </div>
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label class="form-label">Hours</label>
+                                <label class="form-label">Số giờ</label>
                                 <input type="number" step="0.5" class="form-control" id="otHours" required readonly>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">Coefficient</label>
+                                <label class="form-label">Hệ số</label>
                                 <input type="number" step="0.1" class="form-control" id="otCoefficient" value="1.5"
                                     required readonly>
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Reason</label>
+                            <label class="form-label">Lý do</label>
                             <textarea class="form-control" id="otReason" rows="3" required></textarea>
                         </div>
                         <div class="d-flex justify-content-end">
                             <button type="submit" class="btn btn-primary px-4">
-                                <i class="fa-solid fa-paper-plane me-2"></i> Submit Request
+                                <i class="fa-solid fa-paper-plane me-2"></i> Gửi đơn
                             </button>
                         </div>
                     </form>
@@ -260,28 +260,28 @@
         <div class="modal-dialog modal-sm">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Change Password</h5>
+                    <h5 class="modal-title">Đổi mật khẩu</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <form id="changePasswordForm">
                         <div class="mb-3">
-                            <label class="form-label">Current Password</label>
+                            <label class="form-label">Mật khẩu hiện tại</label>
                             <input type="password" class="form-control" id="currentPassword">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">New Password</label>
+                            <label class="form-label">Mật khẩu mới</label>
                             <input type="password" class="form-control" id="newPassword">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Confirm Password</label>
+                            <label class="form-label">Xác nhận mật khẩu</label>
                             <input type="password" class="form-control" id="confirmPassword">
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary btn-sm" id="btnSavePassword">Update</button>
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-primary btn-sm" id="btnSavePassword">Cập nhật</button>
                 </div>
             </div>
         </div>
@@ -292,32 +292,32 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">New Leave Request</h5>
+                    <h5 class="modal-title">Đơn nghỉ phép mới</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <form id="leaveRequestForm">
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label class="form-label">Start Date</label>
+                                <label class="form-label">Ngày bắt đầu</label>
                                 <input type="date" class="form-control" id="leaveStartDate" required>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">End Date</label>
+                                <label class="form-label">Ngày kết thúc</label>
                                 <input type="date" class="form-control" id="leaveEndDate" required>
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Reason</label>
+                            <label class="form-label">Lý do</label>
                             <textarea class="form-control" id="leaveReason" rows="4" required
-                                placeholder="Please provide a reason for your leave request..."></textarea>
+                                placeholder="Vui lòng cung cấp lý do nghỉ phép..."></textarea>
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
                     <button type="button" class="btn btn-success" id="btnSubmitLeaveRequest">
-                        <i class="fa-solid fa-calendar-plus me-2"></i> Submit Request
+                        <i class="fa-solid fa-calendar-plus me-2"></i> Gửi đơn
                     </button>
                 </div>
             </div>
